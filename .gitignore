@@ -1,0 +1,12 @@
+.ssh
+npcmodes
+pawno
+plugins
+*.exe
+*.zip
+*.rar
+temp.txt
+server.log
+server_log.txt
+samp-license.txt
+crashinfo.txt
