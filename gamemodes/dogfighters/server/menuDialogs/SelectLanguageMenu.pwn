@@ -8,5 +8,5 @@ forward showSelectLanguageDialog(playerid, serverPlayers[][serverPlayer]);
 
 public showSelectLanguageDialog(playerid, serverPlayers[][serverPlayer])
 {
-    ShowPlayerDialog(playerid, DIALOG_SELECT_LANGUAGE, DIALOG_STYLE_MSGBOX, "Language selection", "Select your language\nÂûáåðèòå ÿçûê", "English", "Ðóññêèé");
+    ShowPlayerDialog(playerid, DIALOG_SELECT_LANGUAGE, DIALOG_STYLE_MSGBOX, "Language selection", "Welcome to Dogfighters SA~MP Server! Choose your Language\nÄîáðî ïîæàëîâàòü íà ñåðâåð Dogfighters! Âûáåðèòå âàø ÿçûê!", "English", "Ðóññêèé");
 }

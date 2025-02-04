@@ -28,7 +28,7 @@
 
 #define VEHICLES_MINIMAL_MODEL_ID 400
 #define VEHICLES_MAXIMAL_MODEL_ID 605
-#define VEHICLES_FORBIDDEN_MODELS_CHECK vehID == 435 || vehID == 411 || vehID == 450 || vehID == 464 || vehID == 465 || vehID == 501 || vehID == 537 || vehID == 538 || vehID == 564 || vehID == 569 || vehID == 570 || vehID == 590 || vehID == 594
+#define VEHICLES_FORBIDDEN_MODELS_CHECK vehID == 435 || vehID == 441 || vehID == 450 || vehID == 464 || vehID == 465 || vehID == 501 || vehID == 537 || vehID == 538 || vehID == 564 || vehID == 569 || vehID == 570 || vehID == 590 || vehID == 594
 
 #if !defined dcmd
 	#define dcmd(%1,%2,%3) if(!strcmp((%3)[1], #%1, true, (%2)) && ((((%3)[(%2) + 1] == '\0') && (dcmd_%1(playerid, " "))) || (((%3)[(%2) + 1] == ' ') && (dcmd_%1(playerid, (%3)[(%2) + 2]))))) return 1
@@ -116,7 +116,100 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			else
 			    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Сообщения от сервера теперь будут приходить на Русском");
 	    }
+	    case DIALOG_SELECT_VEHICLE:
+	    {
+			if (!response)
+			    return 1;
+			switch(listitem)
+			{
+			    case 0:
+			        showSelectMilitaryDialog(playerid, _serverPlayers);
+				case 1:
+				    showSelectPlaneDialog(playerid, _serverPlayers);
+				case 2:
+				    showSelectHeliDialog(playerid, _serverPlayers);
+				case 3:
+				    showSelectCarDialog(playerid, _serverPlayers);
+				case 4:
+				    showSelectBikeDialog(playerid, _serverPlayers);
+				case 5:
+				    showSelectBoatDialog(playerid, _serverPlayers);
+			}
+	    }
+	    case DIALOG_SELECT_MILITARY:
+	    {
+			if (response == 0)
+			{
+			    showSelectVehicleDialog(playerid, _serverPlayers);
+			    return 1;
+			}
+			new params[4];
+			format(params, sizeof(params), "%d", processSelectMilitaryDialog(playerid, listitem));
+			dcmd_vehicle(playerid, params);
+			return 1;
+	    }
+	    case DIALOG_SELECT_PLANE:
+	    {
+			if (!response)
+			{
+			    showSelectVehicleDialog(playerid, _serverPlayers);
+			    return 1;
+			}
+			new params[4];
+			format(params, sizeof(params), "%d", processSelectPlaneDialog(playerid, listitem));
+			dcmd_vehicle(playerid, params);
+			return 1;
+	    }
+	    case DIALOG_SELECT_HELI:
+	    {
+			if (!response)
+			{
+			    showSelectVehicleDialog(playerid, _serverPlayers);
+			    return 1;
+			}
+			new params[4];
+			format(params, sizeof(params), "%d", processSelectHeliDialog(playerid, listitem));
+			dcmd_vehicle(playerid, params);
+			return 1;
+	    }
+	    case DIALOG_SELECT_CAR:
+	    {
+			if (!response)
+			{
+			    showSelectVehicleDialog(playerid, _serverPlayers);
+			    return 1;
+			}
+			new params[4];
+			format(params, sizeof(params), "%d", processSelectCarDialog(playerid, listitem));
+			dcmd_vehicle(playerid, params);
+			return 1;
+	    }
+	    case DIALOG_SELECT_BIKE:
+	    {
+			if (!response)
+			{
+			    showSelectVehicleDialog(playerid, _serverPlayers);
+			    return 1;
+			}
+			new params[4];
+			format(params, sizeof(params), "%d", processSelectBikeDialog(playerid, listitem));
+			dcmd_vehicle(playerid, params);
+			return 1;
+	    }
+	    case DIALOG_SELECT_BOAT:
+	    {
+			if (!response)
+			{
+			    showSelectVehicleDialog(playerid, _serverPlayers);
+			    return 1;
+			}
+			new params[4];
+			format(params, sizeof(params), "%d", processSelectBoatDialog(playerid, listitem));
+			dcmd_vehicle(playerid, params);
+			return 1;
+	    }
    }
+   return 0;
 }
 
 public OnPlayerCommandText(playerid, cmdtext[])
@@ -152,12 +245,17 @@ dcmd_vehicle(playerid, params[])
     {
         showSelectVehicleDialog(playerid, _serverPlayers);
     }
-	new vehID, color1, color2;
-	vehID = strval(params[0]);
-	
-	color1 = strval(params[2]);
-	color2 = strval(params[3]);
-	if (color1 == 0 && color2 == 0)
+	new vehID = -1, color1 = -1, color2 = -1;
+	if (sscanf(params, "ddd", vehID, color1, color2))
+	{
+        if (vehID < 0)
+        {
+            showSelectVehicleDialog(playerid, _serverPlayers);
+            return 1;
+		}
+		
+	}
+	if (color1 < 0 || color2 < 0)
 	{
 	    color1 = random(255);
 	    color2 = random(255);
@@ -233,9 +331,6 @@ dcmd_heal(playerid, params[])
 {
 	SetPlayerHealth(playerid, 100);
 	SetPlayerArmour(playerid, 100);
-	/*new message[MAX_PLAYER_NAME + 33];
-	format(message, sizeof(message), "Player %s [%d] has been healed", serverPlayers[playerid][name], playerid);*/
-	//SendClientMessageToAll(COLOR_SYSTEM_DISCORD, message);
 	
 	new messageEnglish[MAX_PLAYER_NAME + 33];
 	format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been healed", _serverPlayers[playerid][name], playerid);
@@ -254,9 +349,6 @@ dcmd_hp(playerid, params[])
 dcmd_armour(playerid, params[])
 {
 	return dcmd_heal(playerid, params);
-	/*SetPlayerArmour(playerid, 100);
-	new message[MAX_PLAYER_NAME + 33];
-	format(message, sizeof(message), "Player %s [%d] has been re-armoured", serverPlayers[playerid][name], playerid, vehID);*/
 }
 
 dcmd_arm(playerid, params[])
@@ -269,9 +361,6 @@ dcmd_repair(playerid, params[])
     new vehID = GetPlayerVehicleID(playerid);
     if (vehID > 0)
         RepairVehicle(vehID);
-    /*new message[MAX_PLAYER_NAME + 38];
-	format(message, sizeof(message), "Player %s [%d] repaired his vehicle", serverPlayers[playerid][name], playerid);
-	SendClientMessageToAll(COLOR_SYSTEM_DISCORD, message);*/
 	
 	new messageEnglish[MAX_PLAYER_NAME + 38];
 	format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] repaired his vehicle", _serverPlayers[playerid][name], playerid);
@@ -300,9 +389,6 @@ dcmd_teleport(playerid, params[])
 	    x = 1550;
 	    y = 1452;
 	    z = 11;
-	    /*new message[MAX_PLAYER_NAME + 75];
-		format(message, sizeof(message), "Player %s [%d] has been teleported to Las Venturas International Airport", serverPlayers[playerid][name], playerid);
-		SendClientMessageToAll(COLOR_SYSTEM_DISCORD, message);*/
 		
         new messageEnglish[MAX_PLAYER_NAME + 75];
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to Las Venturas International Airport", _serverPlayers[playerid][name], playerid);
@@ -316,9 +402,6 @@ dcmd_teleport(playerid, params[])
 	    x = 1783.3;
 	    y = -2447;
 	    z = 14;
-	    /*new message[MAX_PLAYER_NAME + 73];
-		format(message, sizeof(message), "Player %s [%d] has been teleported to Los Santos International Airport", serverPlayers[playerid][name], playerid);
-		SendClientMessageToAll(COLOR_SYSTEM_DISCORD, message);*/
 		
 		new messageEnglish[MAX_PLAYER_NAME + 73];
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to Los Santos International Airport", _serverPlayers[playerid][name], playerid);
@@ -332,9 +415,6 @@ dcmd_teleport(playerid, params[])
 		x = -1565;
 	    y = -258;
 	    z = 15;
-	    /*new message[MAX_PLAYER_NAME + 73];
-		format(message, sizeof(message), "Player %s [%d] has been teleported to San Fierro International Airport", serverPlayers[playerid][name], playerid);
-		SendClientMessageToAll(COLOR_SYSTEM_DISCORD, message);*/
 		
 		new messageEnglish[MAX_PLAYER_NAME + 73];
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to San Fierro International Airport", _serverPlayers[playerid][name], playerid);
@@ -390,9 +470,6 @@ dcmd_teleport(playerid, params[])
 			    z = 339;
 	        }
 	    }
-	    /*new message[MAX_PLAYER_NAME + 61];
-		format(message, sizeof(message), "Player %s [%d] has been teleported to the Desert airspace", serverPlayers[playerid][name], playerid);
-		SendClientMessageToAll(COLOR_SYSTEM_DISCORD, message);*/
 		
 		new messageEnglish[MAX_PLAYER_NAME + 61];
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to the Desert airspace", _serverPlayers[playerid][name], playerid);
@@ -448,9 +525,6 @@ dcmd_teleport(playerid, params[])
 			    z = 255;
 	        }
 	    }
-	    /*new message[MAX_PLAYER_NAME + 73];
-		format(message, sizeof(message), "Player %s [%d] has been teleported to the Golden Gate Bridge airspace", serverPlayers[playerid][name], playerid);
-		SendClientMessageToAll(COLOR_SYSTEM_DISCORD, message);*/
 		
 		new messageEnglish[MAX_PLAYER_NAME + 73];
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to the Golden Gate Bridge airspace", _serverPlayers[playerid][name], playerid);
@@ -506,9 +580,6 @@ dcmd_teleport(playerid, params[])
 			    z = 115;
 	        }
 	    }
-	    /*new message[MAX_PLAYER_NAME + 73];
-		format(message, sizeof(message), "Player %s [%d] has been teleported to the Beach airspace", serverPlayers[playerid][name], playerid);
-		SendClientMessageToAll(COLOR_SYSTEM_DISCORD, message);*/
 		
 		new messageEnglish[MAX_PLAYER_NAME + 75];
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to the LS Beach airspace", _serverPlayers[playerid][name], playerid);
@@ -564,9 +635,6 @@ dcmd_teleport(playerid, params[])
 			    z = 700;
 	        }
 	    }
-	    /*new message[MAX_PLAYER_NAME + 73];
-		format(message, sizeof(message), "Player %s [%d] has been teleported to the Chiliad airspace", serverPlayers[playerid][name], playerid);
-		SendClientMessageToAll(COLOR_SYSTEM_DISCORD, message);*/
 		
 		new messageEnglish[MAX_PLAYER_NAME + 73];
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to the Chiliad airspace", _serverPlayers[playerid][name], playerid);

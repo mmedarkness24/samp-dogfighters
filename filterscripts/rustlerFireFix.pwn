@@ -193,10 +193,10 @@ public OnRustlerFiring(playerid, vehicleid)
 			#if DEBUG_MODE == true
 		    printf("%d damaged vehicle: %d(player: %d)", playerid, targetvehicleid, targetid);
 		    #endif
-		    new Float:vehiclehealth = 1000;
-		    if (!GetVehicleHealth(targetvehicleid, vehiclehealth))
-		        continue;
-		    SetVehicleHealth(targetvehicleid, vehiclehealth - RUSTLER_DAMAGE_VEHICLES);  //  Can rewrite with you GiveVehicleDamage logic here
+		    
+			if (!GiveVehicleDamage(targetvehicleid, targetid, playerid, RUSTLER_DAMAGE_VEHICLES))
+			    continue;
+		    // SetVehicleHealth(targetvehicleid, vehiclehealth - RUSTLER_DAMAGE_VEHICLES);  //  Can rewrite with you GiveVehicleDamage logic here
 		    #if BULLET_SYNC_ENABLE == true
 		    bulletData[PR_hitType] = BULLET_HIT_TYPE_VEHICLE;
 		    SendBulletSync(playerid, targetvehicleid, bulletData);
@@ -267,6 +267,26 @@ stock AddPlayerFiringTimer(playerid, vehicleid)
 	firingTimer[playerid] = SetTimerEx(FuncName, 100, true, "ii", playerid, vehicleid);
 }
 
+stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage)
+{
+    new Float:vehiclehealth = 1000;
+    if (!GetVehicleHealth(vehicleid, vehiclehealth))
+        return 0;
+    if (vehiclehealth - RUSTLER_DAMAGE_VEHICLES < 150 && vehiclehealth > 0)
+    {
+        new Float:targetX, Float:targetY, Float:targetZ;
+        GetVehiclePos(vehicleid, targetX, targetY, targetZ);
+        SendDeathMessage(damagerid, targetid, RUSTLER_WEAPON_ID);
+        CreateExplosion(targetX, targetY, targetZ, 2, 3);
+        SetVehicleHealth(vehicleid, 0);
+        SetPlayerHealth(targetid, 0);
+	}
+	else
+	    SetVehicleHealth(vehicleid, vehiclehealth - RUSTLER_DAMAGE_VEHICLES);
+    
+    return 1;
+}
+
 stock GivePlayerDamage(playerid, damagerid, Float:damage)  // Can rewrite with your GivePlayerDamage (OnFoot) logic here
 {
 	new Float:health, Float:armour;
@@ -283,7 +303,7 @@ stock GivePlayerDamage(playerid, damagerid, Float:damage)  // Can rewrite with y
 	}
 	if (health - damage <= 0)   //  Do "player kill" logic
 	{
-	    //SendDeathMessage(damagerid, playerid, RUSTLER_WEAPON_ID);
+	    SendDeathMessage(damagerid, playerid, RUSTLER_WEAPON_ID);
 	    playerDeath[playerid] = damagerid;
 	}
 	SetPlayerHealth(playerid, health - damage);
