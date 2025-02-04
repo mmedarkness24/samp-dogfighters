@@ -23,8 +23,9 @@
 #include <rotation_extra>
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #include <colandreas>   //  For collisions
-
 #include <Pawn.RakNet>  //  For bulletSync packets
+#include "../gamemodes/dogfighters/player/events/PlayerDeath.pwn"
+
 #define FILTERSCRIPT    //  For Pawn.RakNet :D
 
 #define DEBUG_MODE false //  To have extra prints in log
@@ -230,7 +231,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 {
 	if (playerDeath[playerid] > NOTSET)
 	{
-        SendDeathMessage(playerDeath[playerid], playerid, RUSTLER_WEAPON_ID);
+        ProcessPlayerDeath(playerDeath[playerid], playerid, RUSTLER_WEAPON_ID);
         playerDeath[playerid] = NOTSET;
         return 0;
 	}
@@ -276,14 +277,19 @@ stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage)
     {
         new Float:targetX, Float:targetY, Float:targetZ;
         GetVehiclePos(vehicleid, targetX, targetY, targetZ);
-        SendDeathMessage(damagerid, targetid, RUSTLER_WEAPON_ID);
+        //SendDeathMessage(damagerid, targetid, RUSTLER_WEAPON_ID);
+        playerDeath[targetid] = damagerid;
         CreateExplosion(targetX, targetY, targetZ, 2, 3);
         SetVehicleHealth(vehicleid, 0);
-        SetPlayerHealth(targetid, 0);
+        ForcePlayerDeath(targetid, damagerid, RUSTLER_WEAPON_ID);
+        //SetPlayerHealth(targetid, 0);
 	}
 	else
+	{
 	    SetVehicleHealth(vehicleid, vehiclehealth - RUSTLER_DAMAGE_VEHICLES);
-    
+	    SetPVarInt(targetid, "Hit", damagerid);
+ 	}
+
     return 1;
 }
 
@@ -303,10 +309,12 @@ stock GivePlayerDamage(playerid, damagerid, Float:damage)  // Can rewrite with y
 	}
 	if (health - damage <= 0)   //  Do "player kill" logic
 	{
-	    SendDeathMessage(damagerid, playerid, RUSTLER_WEAPON_ID);
+	    //SendDeathMessage(damagerid, playerid, RUSTLER_WEAPON_ID);
 	    playerDeath[playerid] = damagerid;
+	    ForcePlayerDeath(playerid, damagerid, RUSTLER_WEAPON_ID);
 	}
 	SetPlayerHealth(playerid, health - damage);
+	SetPVarInt(playerid, "Hit", damagerid);
 	#if DEBUG_MODE == true
 	printf("Damage has given to %d", playerid);
 	#endif

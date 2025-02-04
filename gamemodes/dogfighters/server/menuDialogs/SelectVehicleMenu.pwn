@@ -1,5 +1,6 @@
 #include "dogfighters\server\serverInfo\ServerPlayers.pwn"
 #include "dogfighters\server\menuDialogs\DialogStyles.pwn"
+#include "dogfighters\server\serverInfo\ModeInfo.pwn"
 
 #define DIALOG_SELECT_VEHICLE 2
 #define DIALOG_SELECT_PLANE 3
@@ -9,13 +10,13 @@
 #define DIALOG_SELECT_BOAT 7
 #define DIALOG_SELECT_MILITARY 8
 
-forward showSelectVehicleDialog(playerid, serverPlayers[][serverPlayer]);
-forward showSelectMilitaryDialog(playerid, serverPlayers[][serverPlayer]);
-forward showSelectPlaneDialog(playerid, serverPlayers[][serverPlayer]);
-forward showSelectHeliDialog(playerid, serverPlayers[][serverPlayer]);
-forward showSelectCarDialog(playerid, serverPlayers[][serverPlayer]);
-forward showSelectBikeDialog(playerid, serverPlayers[][serverPlayer]);
-forward showSelectBoatDialog(playerid, serverPlayers[][serverPlayer]);
+forward showSelectVehicleDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+forward showSelectMilitaryDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+forward showSelectPlaneDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+forward showSelectHeliDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+forward showSelectCarDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+forward showSelectBikeDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+forward showSelectBoatDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 
 forward processSelectMilitaryDialog(playerid, selectedCase);
 forward processSelectPlaneDialog(playerid, selectedCase);
@@ -24,14 +25,14 @@ forward processSelectCarDialog(playerid, selectedCase);
 forward processSelectBikeDialog(playerid, selectedCase);
 forward processSelectBoatDialog(playerid, selectedCase);
 
-public showSelectVehicleDialog(playerid, serverPlayers[][serverPlayer])
+public showSelectVehicleDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
 	if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
     	ShowPlayerDialog(playerid, DIALOG_SELECT_VEHICLE, DIALOG_STYLE_LIST, "Select a vehicle type", "Millitary\nPlane\nHelicopter\nCar\nBike\nBoat", "Select", "Cancel");
 	else
 	    ShowPlayerDialog(playerid, DIALOG_SELECT_VEHICLE, DIALOG_STYLE_LIST, "Выберите тип транспорта", "Военная техника\nСамолёт\nВертолёт\nАвто\nБайк\nЛодка", "Выбрать", "Отмена");
 }
-public showSelectMilitaryDialog(playerid, serverPlayers[][serverPlayer])
+public showSelectMilitaryDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
 	if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
     	ShowPlayerDialog(playerid, DIALOG_SELECT_MILITARY, DIALOG_STYLE_TABLIST_HEADERS, "Select a millitary vehicle", "Name\t\tType\t\tWeapon\n\
@@ -80,7 +81,7 @@ public processSelectMilitaryDialog(playerid, selectedCase)
 	}
 	return 0;
 }
-public showSelectPlaneDialog(playerid, serverPlayers[][serverPlayer])
+public showSelectPlaneDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
 	if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
     	ShowPlayerDialog(playerid, DIALOG_SELECT_PLANE, DIALOG_STYLE_LIST, "Select a plane", "Skimmer\nRustler\nBeagle\nCropduster\nStuntplane\nShamal\nHydra\nNevada\nAT400\nAndromada\nDodo", "Select", "Back");
@@ -117,7 +118,7 @@ public processSelectPlaneDialog(playerid, selectedCase)
 	}
 	return 0;
 }
-public showSelectHeliDialog(playerid, serverPlayers[][serverPlayer])
+public showSelectHeliDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
 	if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
     	ShowPlayerDialog(playerid, DIALOG_SELECT_HELI, DIALOG_STYLE_LIST, "Select a heli", "Leviathan\nHunter\nSeasparrow\nSparrow\nMaverick\nSAN News Maverick\nPolice Maverick\nCargobob\nRaindance", "Select", "Back");
@@ -150,7 +151,7 @@ public processSelectHeliDialog(playerid, selectedCase)
 	}
 	return 0;
 }
-public showSelectCarDialog(playerid, serverPlayers[][serverPlayer])
+public showSelectCarDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
 	if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
     	ShowPlayerDialog(playerid, DIALOG_SELECT_CAR, DIALOG_STYLE_LIST, "Select a car", "Buffalo\nInfernus\nCheetah\nTaxi\nBF Injection\nPremier\nEnforcer\n\
@@ -264,7 +265,7 @@ public processSelectCarDialog(playerid, selectedCase)
 	}
 	return 0;
 }
-public showSelectBikeDialog(playerid, serverPlayers[][serverPlayer])
+public showSelectBikeDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
 	if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
     	ShowPlayerDialog(playerid, DIALOG_SELECT_BIKE, DIALOG_STYLE_LIST, "Select a bike", "Pizzaboy\nPCJ-600\nFaggio\nFreeway\nSanchez\nQuad\nBMX\nBike\nMountain Bike\nFCR-900\nNRG-500\nHPV1000\nBF-400\nWayfarer", "Select", "Back");
@@ -307,7 +308,7 @@ public processSelectBikeDialog(playerid, selectedCase)
 	}
 	return 0;
 }
-public showSelectBoatDialog(playerid, serverPlayers[][serverPlayer])
+public showSelectBoatDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
 	if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
     	ShowPlayerDialog(playerid, DIALOG_SELECT_BOAT, DIALOG_STYLE_LIST, "Select a plane", "Predator\nSquallo\nSpeeder\nReefer\nTropic\nCoastguard\nDinghy\nMarquis\nJetmax\nLaunch", "Select", "Back");
