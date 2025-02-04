@@ -49,11 +49,11 @@ public showSelectMilitaryDialog(playerid, serverPlayers[][serverPlayer])
 	Hydra\tРеактивный самолёт\tРакеты\n\
 	Rustler\tПоршневой самолёт\tПулемёт (М4)\n\
 	Hunter\tВертолёт\tМиниган\n\
-	Rhino\tTank\tТанковый снаряд\n\
-	Seasparrow\tHelicopter\tПулемёт (M4)\n\
-	Patriot\tCar\tUnarmed\n\
-	Predator\tBoat\tUnarmed\n\
-	Coastguard\tBoat\tUnarmed", 
+	Rhino\tТанк\tТанковый снаряд\n\
+	Seasparrow\tВертолёт\tПулемёт (M4)\n\
+	Patriot\tАвтомобиль\tUnarmed\n\
+	Predator\tКатер\tUnarmed\n\
+	Coastguard\tКатер\tUnarmed", 
 	"Выбор", "Отмена");
 }
 //	Returns vehicle model ID to spawn or 0 when error
@@ -208,59 +208,136 @@ public processSelectCarDialog(playerid, selectedCase)
 		case 16:
 			return 477;//	ZR-350
 		case 17:
-			return 563;
+			return 480;//	Comet
 		case 18:
-			return 563;
+			return 489;//	Rancher
 		case 19:
-			return 563;
+			return 490;//	FBI Rancher
 		case 20:
-			return 563;
+			return 494;//	Hotring Racer
 		case 21:
-			return 563;
+			return 495;//	Sandking
 		case 22:
-			return 563;
+			return 496;//	Blista Compact
 		case 23:
-			return 563;
+			return 506;//	Super GT
 		case 24:
-			return 563;
+			return 528;//	FBI Truck
 		case 25:
-			return 563;
+			return 533;//	Feltzer
 		case 26:
-			return 563;
+			return 534;//	Remington
 		case 27:
-			return 563;
+			return 541;//	Bullet
 		case 28:
-			return 563;
+			return 559;//	Jester
 		case 29:
-			return 563;
+			return 560;//	Sultan
 		case 30:
-			return 563;
+			return 561;//	Stratum
 		case 31:
-			return 563;
+			return 562;//	Elegy
 		case 32:
-			return 563;
+			return 565;//	Flash
+		case 33:
+			return 567;//	Savanna
+		case 34:
+			return 575;//	Broadway
+		case 35:
+			return 579;//	Huntley
+		case 36:
+			return 580;//	Stafford
+		case 37:
+			return 601;//	S.W.A.T.
+		case 38:
+			return 602;//	Alpha
+		case 39:
+			return 603;//	Phoenix
+		case 40:
+			return 596;//	Police Car (LSPD)
+		case 41:
+			return 597;//	Police Car (SFPD)
+		case 42:
+			return 598;//	Police Car (LVPD)
+		case 43:
+			return 599;//	Police Ranger
 	}
 	return 0;
 }
 public showSelectBikeDialog(playerid, serverPlayers[][serverPlayer])
 {
 	if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-    	ShowPlayerDialog(playerid, DIALOG_SELECT_BIKE, DIALOG_STYLE_LIST, "Select a plane", "Hydra\nRustler\nStuntplane\nBeagle\nDodo", "Select", "Back");
+    	ShowPlayerDialog(playerid, DIALOG_SELECT_BIKE, DIALOG_STYLE_LIST, "Select a bike", "Pizzaboy\nPCJ-600\nFaggio\nFreeway\nSanchez\nQuad\nBMX\nBike\nMountain Bike\nFCR-900\nNRG-500\nHPV1000\nBF-400\nWayfarer", "Select", "Back");
 	else
-	    ShowPlayerDialog(playerid, DIALOG_SELECT_BIKE, DIALOG_STYLE_LIST, "Select a plane", "Hydra\nRustler\nStuntplane\nBeagle\nDodo", "Выбор", "Назад");
+	    ShowPlayerDialog(playerid, DIALOG_SELECT_BIKE, DIALOG_STYLE_LIST, "Выберите байк", "Pizzaboy\nPCJ-600\nFaggio\nFreeway\nSanchez\nQuad\nBMX\nBike\nMountain Bike\nFCR-900\nNRG-500\nHPV1000\nBF-400\nWayfarer", "Выбор", "Назад");
 }
 //	Returns vehicle model ID to spawn or 0 when error
 public processSelectBikeDialog(playerid, selectedCase)
 {
+	switch(selectedCase)
+	{
+		case 0:
+			return 448;
+		case 1:
+			return 461;
+		case 2:
+			return 462;
+		case 3:
+			return 463;
+		case 4:
+			return 468;
+		case 5:
+			return 471;
+		case 6:
+			return 481;
+		case 7:
+			return 509;
+		case 8:
+			return 510;
+		case 9:
+			return 521;
+		case 10:
+			return 522;
+		case 11:
+			return 523;
+		case 12:
+			return 581;
+		case 13:
+			return 586;
+	}
 	return 0;
 }
 public showSelectBoatDialog(playerid, serverPlayers[][serverPlayer])
 {
 	if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-    	ShowPlayerDialog(playerid, DIALOG_SELECT_BOAT, DIALOG_STYLE_LIST, "Select a plane", "Hydra\nRustler\nStuntplane\nBeagle\nDodo", "Select", "Back");
+    	ShowPlayerDialog(playerid, DIALOG_SELECT_BOAT, DIALOG_STYLE_LIST, "Select a plane", "Predator\nSquallo\nSpeeder\nReefer\nTropic\nCoastguard\nDinghy\nMarquis\nJetmax\nLaunch", "Select", "Back");
 	else
-	    ShowPlayerDialog(playerid, DIALOG_SELECT_BOAT, DIALOG_STYLE_LIST, "Select a plane", "Hydra\nRustler\nStuntplane\nBeagle\nDodo", "Выбор", "Назад");
+	    ShowPlayerDialog(playerid, DIALOG_SELECT_BOAT, DIALOG_STYLE_LIST, "Select a plane", "Predator\nSquallo\nSpeeder\nReefer\nTropic\nCoastguard\nDinghy\nMarquis\nJetmax\nLaunch", "Выбор", "Назад");
 }
 public processSelectBoatDialog(playerid, selectedCase)
 {
+	switch(selectedCase)
+	{
+		case 0:
+			return 430;
+		case 1:
+			return 446;
+		case 2:
+			return 452;
+		case 3:
+			return 453;
+		case 4:
+			return 454;
+		case 5:
+			return 472;
+		case 6:
+			return 473;
+		case 7:
+			return 484;
+		case 8:
+			return 493;
+		case 9:
+			return 595;
+	}
+	return 0;
 }
