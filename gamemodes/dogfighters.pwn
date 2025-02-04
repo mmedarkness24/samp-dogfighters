@@ -8,12 +8,6 @@
 
 #define DEBUG_MODE true
 
-#define MODE_NAME 			"Dogfighters"
-#define MODE_VER_MAJOR 		"0.0.1"
-#define MODE_VER_UPDATE 	"upd:03.02.2025"
-#define MODE_AUTHOR 		"d7.KrEoL"
-#define MODE_MAX_PLAYERS 	64
-
 #define COLOR_SYSTEM_MAIN 0x0D6EFDFF
 #define COLOR_SYSTEM_DISCORD 0x00A2FFFF
 #define COLOR_SYSTEM_RED 0xFF0000FF
@@ -212,6 +206,21 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
    return 0;
 }
 
+public OnPlayerDeath(playerid, killerid, reason)
+{
+	return ProcessPlayerDeath(playerid, killerid, reason);
+}
+
+public OnPlayerSpawn(playerid)
+{
+	return ProcessPlayerSpawn(playerid);
+}
+
+public OnVehicleDeath(vehicleid, killerid)
+{
+	return ProcessVehicleDeath(vehicleid, killerid, _serverPlayers);
+}
+
 public OnPlayerCommandText(playerid, cmdtext[])
 {
 	dcmd(vehicle,7,cmdtext);
@@ -384,7 +393,7 @@ dcmd_r(playerid, params[])
 dcmd_teleport(playerid, params[])
 {
 	new Float:x, Float:y, Float:z;
-	if (!strcmp(params[0], "lv"))
+	if (!strcmp(params[0], "lv", true))
 	{
 	    x = 1550;
 	    y = 1452;
@@ -397,7 +406,7 @@ dcmd_teleport(playerid, params[])
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в Международный Аэропорт Лас Вентурас", _serverPlayers[playerid][name], playerid);
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
 	}
-	else if (!strcmp(params[0], "ls"))
+	else if (!strcmp(params[0], "ls", true))
 	{
 	    x = 1783.3;
 	    y = -2447;
@@ -410,7 +419,7 @@ dcmd_teleport(playerid, params[])
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в Международный Аэропорт Лос Сантос", _serverPlayers[playerid][name], playerid);
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
 	}
-	else if (!strcmp(params[0], "sf"))
+	else if (!strcmp(params[0], "sf", true))
 	{
 		x = -1565;
 	    y = -258;
@@ -423,7 +432,7 @@ dcmd_teleport(playerid, params[])
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в Международный Аэропорт Сан Фиерро", _serverPlayers[playerid][name], playerid);
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
 	}
-	else if (!strcmp(params[0], "desert"))
+	else if (!strcmp(params[0], "desert", true))
 	{
 	    switch(random(7))
 	    {
@@ -478,7 +487,7 @@ dcmd_teleport(playerid, params[])
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в полётную зону пустыни", _serverPlayers[playerid][name], playerid);
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
 	}
-	else if (!strcmp(params[0], "gate"))
+	else if (!strcmp(params[0], "gate", true))
 	{
 	    switch(random(7))
 	    {
@@ -533,7 +542,7 @@ dcmd_teleport(playerid, params[])
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в полётную зону моста Золотые Ворота", _serverPlayers[playerid][name], playerid);
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
 	}
-	else if (!strcmp(params[0], "beach"))
+	else if (!strcmp(params[0], "beach", true))
 	{
 	    switch(random(7))
 	    {
@@ -588,7 +597,7 @@ dcmd_teleport(playerid, params[])
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в полётную зону Пляжа ЛС", _serverPlayers[playerid][name], playerid);
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
 	}
-	else if (!strcmp(params[0], "chill"))
+	else if (!strcmp(params[0], "chill", true))
 	{
 	    switch(random(7))
 	    {
