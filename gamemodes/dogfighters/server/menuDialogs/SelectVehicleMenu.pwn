@@ -1,6 +1,5 @@
-#include "dogfighters\server\serverInfo\ServerPlayers.pwn"
+#include "dogfighters\server\serverInfo\serverMain.pwn"
 #include "dogfighters\server\menuDialogs\DialogStyles.pwn"
-#include "dogfighters\server\serverInfo\ModeInfo.pwn"
 
 #define DIALOG_SELECT_VEHICLE 2
 #define DIALOG_SELECT_PLANE 3

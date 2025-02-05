@@ -1,3 +1,6 @@
+#if !defined EVENTS_PLAYER_SELECT_CLASS
+#define EVENTS_PLAYER_SELECT_CLASS
+
 forward PlayerSelectClass(playerid, classid);
 forward SetupPlayerForClassSelection(playerid, classid);
 
@@ -55,3 +58,5 @@ public SetupPlayerForClassSelection(playerid, classid)
 		}
 	}
 }
+
+#endif

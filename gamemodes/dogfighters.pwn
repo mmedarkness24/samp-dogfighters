@@ -8,18 +8,6 @@
 
 #define DEBUG_MODE true
 
-#define COLOR_SYSTEM_MAIN 0x0D6EFDFF
-#define COLOR_SYSTEM_DISCORD 0x00A2FFFF
-#define COLOR_SYSTEM_RED 0xFF0000FF
-#define COLOR_SYSTEM_GREEN 0x00FF00FF
-#define COLOR_SYSTEM_BLUE 0x0000FFFF
-
-#define COLOR_MAIN {0D6EFD}
-#define COLOR_DISCORD {00A2FF}
-#define COLOR_RED {FF0000}
-#define COLOR_GREEN {00FF00}
-#define COLOR_BLUE {0000FF}
-
 #define VEHICLES_MINIMAL_MODEL_ID 400
 #define VEHICLES_MAXIMAL_MODEL_ID 605
 #define VEHICLES_FORBIDDEN_MODELS_CHECK vehID == 435 || vehID == 441 || vehID == 450 || vehID == 464 || vehID == 465 || vehID == 501 || vehID == 537 || vehID == 538 || vehID == 564 || vehID == 569 || vehID == 570 || vehID == 590 || vehID == 594
@@ -34,9 +22,10 @@
 
 forward setPlayerConnectionStatus(playerid, bool:isConnectedStatus);
 
-forward sendLocalizedMessage(message_ru[], message_en[], color);
-
 forward destroyPlayerVehicle(playerid);
+forward OnRustlerFiring(playerid, vehicleid);
+
+forward OnUpdate();
 
 new _serverPlayers[MODE_MAX_PLAYERS][serverPlayer];
 
@@ -70,7 +59,17 @@ public OnGameModeInit()
 	AddPlayerClass(287,-1409.96,496.92,19,270.1425,0,0,0,0,-1,-1);//    Army LV
 	AddPlayerClass(227,1687.82,1449.2,11,90,0,0,0,0,-1,-1);//    Dispatch
     AddPlayerClass(61,1889.45, -2289, 13,0,0,0,0,-1,-1);//    Civil Pilot
+    
+    //RegisterServerPlayers(_serverPlayers);
+    SetTimer("OnUpdateLong", 1000, true);
 	return 1;
+}
+
+public OnUpdateLong()
+{
+    //RegisterServerPlayers(_serverPlayers);
+    CheckAllPlayersActivity(_serverPlayers);
+    OnUpdateAllPlayers(_serverPlayers);
 }
 
 public OnGameModeExit()
@@ -91,6 +90,23 @@ public OnPlayerDisconnect(playerid)
 {
 	setPlayerConnectionStatus(playerid, false);
 	return 1;
+}
+
+public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
+{
+    if ((newkeys & KEY_ACTION) && !(oldkeys & KEY_ACTION) && IsPlayerInAnyVehicle(playerid))
+    {
+        new vehicleid = GetPlayerVehicleID(playerid);
+        if (GetVehicleModel(vehicleid) != RUSTLER_MODEL_ID)
+            return 0;
+		AddPlayerFiringTimer(playerid, vehicleid);
+	}
+	if ((oldkeys & KEY_ACTION) && !(newkeys & KEY_ACTION))
+	{
+	    if (firingTimer[playerid] != NOTSET)
+	        KillFiringTimer(playerid);
+	}
+    return 0;
 }
 
 
@@ -210,12 +226,13 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 public OnPlayerDeath(playerid, killerid, reason)
 {
-	return ProcessPlayerDeath(playerid, killerid, reason);
+	printf("OnPlayerDeath: %s (%d) -> %s (%d) [%d];", _serverPlayers[killerid][name], killerid, _serverPlayers[playerid][name], playerid, reason);
+	return ProcessPlayerDeath(playerid,	killerid, reason, _serverPlayers);
 }
 
 public OnPlayerSpawn(playerid)
 {
-	return ProcessPlayerSpawn(playerid);
+	return ProcessPlayerSpawn(playerid, _serverPlayers[playerid][money]);
 }
 
 public OnVehicleDeath(vehicleid, killerid)
@@ -329,7 +346,7 @@ dcmd_vehicle(playerid, params[])
 	
 	new messageRussian[MAX_PLAYER_NAME + 46];
 	format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] заспавнил новый транспорт: %d", _serverPlayers[playerid][name], playerid, vehID);
-	sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
+	sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
     //SendClientMessageToAll(COLOR_SYSTEM_DISCORD, message);
 	return 1;
 }
@@ -346,6 +363,11 @@ dcmd_car(playerid, params[])
 
 dcmd_heal(playerid, params[])
 {
+	if (!AddPlayerMoney(playerid, -1000, _serverPlayers))
+	{
+	    sendLocalizedMessage("Недостаточно денег, нужнно $1000", "Not enough money. $1000 is needed", COLOR_SYSTEM_DISCORD, _serverPlayers);
+	    return 1;
+	}
 	SetPlayerHealth(playerid, 100);
 	SetPlayerArmour(playerid, 100);
 	
@@ -354,7 +376,7 @@ dcmd_heal(playerid, params[])
 
 	new messageRussian[MAX_PLAYER_NAME + 33];
 	format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] был исцелён", _serverPlayers[playerid][name], playerid);
-	sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
+	sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	return 1;
 }
 
@@ -375,6 +397,11 @@ dcmd_arm(playerid, params[])
 
 dcmd_repair(playerid, params[])
 {
+    if (!AddPlayerMoney(playerid, -1000, _serverPlayers))
+	{
+	    sendLocalizedMessage("Недостаточно денег, нужнно $1000", "Not enough money. $1000 is needed", COLOR_SYSTEM_DISCORD, _serverPlayers);
+	    return 1;
+	}
     new vehID = GetPlayerVehicleID(playerid);
     if (vehID > 0)
         RepairVehicle(vehID);
@@ -384,7 +411,7 @@ dcmd_repair(playerid, params[])
 
 	new messageRussian[MAX_PLAYER_NAME + 38];
 	format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] понинил своё авто", _serverPlayers[playerid][name], playerid);
-	sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
+	sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	return 1;
 }
 
@@ -400,6 +427,11 @@ dcmd_r(playerid, params[])
 
 dcmd_teleport(playerid, params[])
 {
+    if (!AddPlayerMoney(playerid, -100, _serverPlayers))
+	{
+	    sendLocalizedMessage("Недостаточно денег, нужнно $100", "Not enough money. $1000 is needed", COLOR_SYSTEM_DISCORD, _serverPlayers);
+	    return 1;
+	}
 	new Float:x, Float:y, Float:z;
 	if (!strcmp(params[0], "lv", true))
 	{
@@ -412,7 +444,7 @@ dcmd_teleport(playerid, params[])
 
 		new messageRussian[MAX_PLAYER_NAME + 75];
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в Международный Аэропорт Лас Вентурас", _serverPlayers[playerid][name], playerid);
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
+		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else if (!strcmp(params[0], "ls", true))
 	{
@@ -425,7 +457,7 @@ dcmd_teleport(playerid, params[])
 
 		new messageRussian[MAX_PLAYER_NAME + 73];
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в Международный Аэропорт Лос Сантос", _serverPlayers[playerid][name], playerid);
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
+		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else if (!strcmp(params[0], "sf", true))
 	{
@@ -438,7 +470,7 @@ dcmd_teleport(playerid, params[])
 
 		new messageRussian[MAX_PLAYER_NAME + 73];
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в Международный Аэропорт Сан Фиерро", _serverPlayers[playerid][name], playerid);
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
+		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else if (!strcmp(params[0], "desert", true))
 	{
@@ -493,7 +525,7 @@ dcmd_teleport(playerid, params[])
 
 		new messageRussian[MAX_PLAYER_NAME + 61];
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в полётную зону пустыни", _serverPlayers[playerid][name], playerid);
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
+		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else if (!strcmp(params[0], "gate", true))
 	{
@@ -548,7 +580,7 @@ dcmd_teleport(playerid, params[])
 
 		new messageRussian[MAX_PLAYER_NAME + 73];
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в полётную зону моста Золотые Ворота", _serverPlayers[playerid][name], playerid);
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
+		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else if (!strcmp(params[0], "beach", true))
 	{
@@ -603,7 +635,7 @@ dcmd_teleport(playerid, params[])
 
 		new messageRussian[MAX_PLAYER_NAME + 75];
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в полётную зону Пляжа ЛС", _serverPlayers[playerid][name], playerid);
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
+		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else if (!strcmp(params[0], "chill", true))
 	{
@@ -658,7 +690,7 @@ dcmd_teleport(playerid, params[])
 
 		new messageRussian[MAX_PLAYER_NAME + 78];
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в полётную зону горы Чилиад", _serverPlayers[playerid][name], playerid);
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
+		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else
 	{
@@ -705,8 +737,8 @@ dcmd_setlang(playerid, params[])
 
 public setPlayerConnectionStatus(playerid, bool:isConnectedStatus)
 {
-	_serverPlayers[playerid][isConnected] = isConnectedStatus;
-	if (_serverPlayers[playerid][isConnected])
+	//_serverPlayers[playerid][isConnected] = isConnectedStatus;
+	if (isConnectedStatus)
 	{
 	    new playerName[MAX_PLAYER_NAME + 1];
 		new result = GetPlayerName(playerid, playerName, sizeof(playerName));
@@ -724,7 +756,7 @@ public setPlayerConnectionStatus(playerid, bool:isConnectedStatus)
 		new messageRussian[MAX_PLAYER_NAME + 36];
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] подключился к серверу", _serverPlayers[playerid][name], playerid);
 		
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
+		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else
 	{
@@ -737,7 +769,7 @@ public setPlayerConnectionStatus(playerid, bool:isConnectedStatus)
 		new messageRussian[MAX_PLAYER_NAME + 38];
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] отключился от сервера=(", _serverPlayers[playerid][name], playerid);
 
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD);
+		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 }
 public destroyPlayerVehicle(playerid)
@@ -747,16 +779,113 @@ public destroyPlayerVehicle(playerid)
     DestroyVehicle(_serverPlayers[playerid][vehicleID]);
     _serverPlayers[playerid][vehicleID] = 0;
 }
-public sendLocalizedMessage(message_ru[], message_en[], color)
+
+public OnRustlerFiring(playerid, vehicleid)
 {
-	new Message[145];
-	for (new i = 0; i < MODE_MAX_PLAYERS; i++)
+	if (!IsPlayerConnected(playerid) || !IsPlayerSpawned(playerid) || !IsPlayerInAnyVehicle(playerid))
 	{
-	    if (!IsPlayerConnected(i))
-	        continue;
-	    if (_serverPlayers[i][language] == PLAYER_LANGUAGE_ENGLISH)
-	        SendClientMessage(i, color, message_en);
-		else
-		    SendClientMessage(i, color, message_ru);
+	    KillFiringTimer(playerid);
+	    return;
 	}
+	#if DEBUG_MODE == true
+    //printf("\n------------\n\n\nRustler fire from id: %d", playerid);
+    #endif
+    if (!IsPlayerInAnyVehicle(playerid))
+		KillFiringTimer(playerid);
+	new Float:spositionX, Float:spositionY, Float:spositionZ;
+	GetVehiclePos(vehicleid, spositionX, spositionY, spositionZ);
+	new Float:offsetX, Float:offsetY, Float:offsetZ;
+	new Float:castX, Float:castY, Float:castZ;
+	new targetid = NOTSET;
+	new searchRadius = COLLISION_SEARCH_MIN_RADIUS;
+
+	for (new i = COLLISION_MINIMAL_DISTANCE; i < COLLISION_MAXIMAL_DISTANCE; i += COLLISION_DISTANCE_STEP)
+	{
+    	GetVehicleRelativePos(vehicleid, 0, i, 0, offsetX, offsetY, offsetZ);
+		targetid = GetNearestPlayer(offsetX, offsetY, offsetZ, searchRadius, playerid);
+
+		if (searchRadius < COLLISION_SEARCH_MAX_RADIUS)
+    	    searchRadius += COLLISION_SEARCH_RADIUS_STEP;
+		if (targetid == NOTSET)
+		    continue;
+
+		new Float:targetX, Float:targetY, Float:targetZ;
+		if (!GetPlayerPos(targetid, targetX, targetY, targetZ))
+		{
+		    #if DEBUG_MODE == true
+		    //printf("bad target %d", targetid);
+		    #endif
+
+		    break;
+		}
+
+		if (CA_RayCastLine(spositionX, spositionY, spositionZ, targetX, targetY, targetZ, castX, castY, castZ) != 0)
+        {
+            #if DEBUG_MODE == true
+			printf("!!![COLLISION FOUND: %.2f %.2f %.2f] (Player %d is behind the object)", castX, castY, castZ, targetid);
+			#endif
+
+			break;
+		}
+		#if BULLET_SYNC_ENABLE == true
+		new bulletData[PR_BulletSync];  //To send bulletData
+		bulletData[PR_hitId] = targetid;
+		bulletData[PR_origin][0] = spositionX;
+		bulletData[PR_origin][1] = spositionY;
+		bulletData[PR_origin][2] = spositionZ;
+		bulletData[PR_hitPos][0] = targetX;
+        bulletData[PR_hitPos][1] = targetY;
+        bulletData[PR_hitPos][2] = targetZ;
+        bulletData[PR_offsets][0] = 0;
+        bulletData[PR_offsets][1] = 0;
+        bulletData[PR_offsets][2] = 0;
+        bulletData[PR_weaponId] = RUSTLER_WEAPON_ID;
+        #endif
+
+		if (IsPlayerInAnyVehicle(targetid))
+		{
+			new targetvehicleid = GetPlayerVehicleID(targetid);
+			#if DEBUG_MODE == true
+		    //printf("%d damaged vehicle: %d(player: %d)", playerid, targetvehicleid, targetid);
+		    #endif
+
+			if (!GiveVehicleDamage(targetvehicleid, targetid, playerid, RUSTLER_DAMAGE_VEHICLES, _serverPlayers))
+			    continue;
+		    // SetVehicleHealth(targetvehicleid, vehiclehealth - RUSTLER_DAMAGE_VEHICLES);  //  Can rewrite with you GiveVehicleDamage logic here
+		    #if BULLET_SYNC_ENABLE == true
+		    bulletData[PR_hitType] = BULLET_HIT_TYPE_VEHICLE;
+		    SendBulletSync(playerid, targetvehicleid, bulletData);
+		    #endif
+
+		    break;
+		}
+		else
+		{
+		    #if DEBUG_MODE == true
+		    printf("%d damaged player: %d", playerid, targetid);
+		    #endif
+		    new Float:playerhealth = 100;
+            if (!GetPlayerHealth(targetid, playerhealth))
+		        continue;
+            GivePlayerDamage(targetid, playerid, RUSTLER_DAMAGE_PLAYERS, _serverPlayers);
+            #if BULLET_SYNC_ENABLE == true
+            bulletData[PR_hitType] = BULLET_HIT_TYPE_PLAYER;
+            SendBulletSync(playerid, targetid, bulletData);
+            #endif
+
+            break;
+		}
+	}
+	#if DEBUG_MODE == true
+    printf("---------");
+    #endif
+}
+
+stock AddPlayerFiringTimer(playerid, vehicleid)
+{
+	if (firingTimer[playerid] != NOTSET)
+	    KillFiringTimer(playerid);
+	//RegisterServerPlayers(serverPlayers);
+    new FuncName[16] = "OnRustlerFiring";
+	firingTimer[playerid] = SetTimerEx(FuncName, 100, true, "ii", playerid, vehicleid);
 }

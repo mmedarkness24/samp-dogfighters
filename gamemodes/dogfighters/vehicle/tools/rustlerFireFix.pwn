@@ -1,4 +1,7 @@
-#include <a_samp>
+#if !defined RUSTLER_FIRE_FIX
+#define RUSTLER_FIRE_FIX
+//#include <pointers>
+//#include <a_samp>
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	You can use mobile.inc to distinguish mobile
 	players from PC and not to use this script
@@ -24,9 +27,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #include <colandreas>   //  For collisions
 #include <Pawn.RakNet>  //  For bulletSync packets
-//#include "../gamemodes/dogfighters/player/events/PlayerDeath.pwn"
+#include "dogfighters/player/events/PlayerDeath.pwn"
+#include "dogfighters\server\serverInfo\serverMain.pwn"
 
-#define FILTERSCRIPT    //  For Pawn.RakNet :D
+//#define FILTERSCRIPT    //  For Pawn.RakNet :D
 
 #define DEBUG_MODE false //  To have extra prints in log
 #define COLLISION_SEARCH_MIN_RADIUS 1   //  Radius near plane
@@ -54,14 +58,15 @@
 #endif
 
 forward OnCheckFireUpdate();
-forward OnRustlerFiring(playerid, vehicleid);
+//forward OnRustlerFiring(playerid, vehicleid);
 forward GetNearestPlayer(Float:x, Float:y, Float:z, Float:radius, playerid);
 
 new firingTimer[MAX_PLAYERS];
+//new _svrPlayers[MODE_MAX_PLAYERS][serverPlayer];
 //new playerDeath[MAX_PLAYERS];
 
 
-public OnFilterScriptInit()
+/*public OnFilterScriptInit()
 {
 	print("----------------------------\n|-[rustlerFireFix script by d7.KrEoL loaded]");
 	print("|		15.12.24");
@@ -82,24 +87,13 @@ public OnFilterScriptExit()
 {
 	print("\n--dlink Test Unloaded.\n------------------");
 	return 1;
-}
+}*/
 
-public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
+/*public RegisterServerPlayers(serverPlayers[MODE_MAX_PLAYERS][serverPlayer])	//	BUG DANGEROUS FUNCTION
 {
-    if ((newkeys & KEY_ACTION) && !(oldkeys & KEY_ACTION) && IsPlayerInAnyVehicle(playerid))
-    {
-        new vehicleid = GetPlayerVehicleID(playerid);
-        if (GetVehicleModel(vehicleid) != RUSTLER_MODEL_ID)
-            return 0;
-		AddPlayerFiringTimer(playerid, vehicleid);
-	}
-	if ((oldkeys & KEY_ACTION) && !(newkeys & KEY_ACTION))
-	{
-	    if (firingTimer[playerid] != NOTSET)
-	        KillFiringTimer(playerid);
-	}
-    return 0;
-}
+	//_svrPlayers = GetVariableAddress(serverPlayers);
+	_svrPlayers = serverPlayers;//[MODE_MAX_PLAYERS][serverPlayer];
+}*/
 
 public GetNearestPlayer(Float:x, Float:y, Float:z, Float:radius, playerid)
 {
@@ -120,7 +114,7 @@ public GetNearestPlayer(Float:x, Float:y, Float:z, Float:radius, playerid)
 	return int:result;
 }
 
-public OnRustlerFiring(playerid, vehicleid)
+/*public OnRustlerFiring(playerid, vehicleid)
 {
 	if (!IsPlayerConnected(playerid) || !IsPlayerSpawned(playerid) || !IsPlayerInAnyVehicle(playerid))
 	{
@@ -132,8 +126,8 @@ public OnRustlerFiring(playerid, vehicleid)
     #endif
     if (!IsPlayerInAnyVehicle(playerid))
 		KillFiringTimer(playerid);
-	new Float:positionX, Float:positionY, Float:positionZ;
-	GetVehiclePos(vehicleid, positionX, positionY, positionZ);
+	new Float:spositionX, Float:spositionY, Float:spositionZ;
+	GetVehiclePos(vehicleid, spositionX, spositionY, spositionZ);
 	new Float:offsetX, Float:offsetY, Float:offsetZ;
 	new Float:castX, Float:castY, Float:castZ;
 	new targetid = NOTSET;
@@ -159,7 +153,7 @@ public OnRustlerFiring(playerid, vehicleid)
 		    break;
 		}
 
-		if (CA_RayCastLine(positionX, positionY, positionZ, targetX, targetY, targetZ, castX, castY, castZ) != 0)
+		if (CA_RayCastLine(spositionX, spositionY, spositionZ, targetX, targetY, targetZ, castX, castY, castZ) != 0)
         {
             #if DEBUG_MODE == true
 			printf("!!![COLLISION FOUND: %.2f %.2f %.2f] (Player %d is behind the object)", castX, castY, castZ, targetid);
@@ -167,18 +161,12 @@ public OnRustlerFiring(playerid, vehicleid)
 
 			break;
 		}
-		// Uncomment if you're using mobile.inc to recognize mobile clients
-		/*if (!IsPlayerMobile(targetid))    //#include "mobile.inc" above
-		{
-		    printf("player %d is not mobile player", targetid);
-		    break;
-		}*/
 		#if BULLET_SYNC_ENABLE == true
 		new bulletData[PR_BulletSync];  //To send bulletData
 		bulletData[PR_hitId] = targetid;
-		bulletData[PR_origin][0] = positionX;
-		bulletData[PR_origin][1] = positionY;
-		bulletData[PR_origin][2] = positionZ;
+		bulletData[PR_origin][0] = spositionX;
+		bulletData[PR_origin][1] = spositionY;
+		bulletData[PR_origin][2] = spositionZ;
 		bulletData[PR_hitPos][0] = targetX;
         bulletData[PR_hitPos][1] = targetY;
         bulletData[PR_hitPos][2] = targetZ;
@@ -195,7 +183,7 @@ public OnRustlerFiring(playerid, vehicleid)
 		    printf("%d damaged vehicle: %d(player: %d)", playerid, targetvehicleid, targetid);
 		    #endif
 		    
-			if (!GiveVehicleDamage(targetvehicleid, targetid, playerid, RUSTLER_DAMAGE_VEHICLES))
+			if (!GiveVehicleDamage(targetvehicleid, targetid, playerid, RUSTLER_DAMAGE_VEHICLES, serverPlayers))
 			    continue;
 		    // SetVehicleHealth(targetvehicleid, vehiclehealth - RUSTLER_DAMAGE_VEHICLES);  //  Can rewrite with you GiveVehicleDamage logic here
 		    #if BULLET_SYNC_ENABLE == true
@@ -213,7 +201,7 @@ public OnRustlerFiring(playerid, vehicleid)
 		    new Float:playerhealth = 100;
             if (!GetPlayerHealth(targetid, playerhealth))
 		        continue;
-            GivePlayerDamage(targetid, playerid, RUSTLER_DAMAGE_PLAYERS);
+            GivePlayerDamage(targetid, playerid, RUSTLER_DAMAGE_PLAYERS, serverPlayers);
             #if BULLET_SYNC_ENABLE == true
             bulletData[PR_hitType] = BULLET_HIT_TYPE_PLAYER;
             SendBulletSync(playerid, targetid, bulletData);
@@ -225,7 +213,7 @@ public OnRustlerFiring(playerid, vehicleid)
 	#if DEBUG_MODE == true
     printf("---------");
     #endif
-}
+}*/
 
 /*public OnPlayerDeath(playerid, killerid, reason)
 {
@@ -260,15 +248,16 @@ stock SendBulletSync(playerid, victimid, data[PR_BulletSync])
 }
 #endif
 
-stock AddPlayerFiringTimer(playerid, vehicleid)
+/*stock AddPlayerFiringTimer(playerid, vehicleid)
 {
 	if (firingTimer[playerid] != NOTSET)
 	    KillFiringTimer(playerid);
+	//RegisterServerPlayers(serverPlayers);
     new FuncName[16] = "OnRustlerFiring";
 	firingTimer[playerid] = SetTimerEx(FuncName, 100, true, "ii", playerid, vehicleid);
-}
+}*/
 
-stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage)
+stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
     new Float:vehiclehealth = 1000;
     if (!GetVehicleHealth(vehicleid, vehiclehealth))
@@ -281,7 +270,7 @@ stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage)
         //playerDeathtargetid] = damagerid;
         CreateExplosion(targetX, targetY, targetZ, 2, 3);
         SetVehicleHealth(vehicleid, 0);
-        //ForcePlayerDeath(targetid, damagerid, RUSTLER_WEAPON_ID);
+        ForcePlayerDeath(targetid, damagerid, RUSTLER_WEAPON_ID, serverPlayers);
         SetPlayerHealth(targetid, 0);
 	}
 	else
@@ -294,8 +283,9 @@ stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage)
     return 1;
 }
 
-stock GivePlayerDamage(playerid, damagerid, Float:damage)  // Can rewrite with your GivePlayerDamage (OnFoot) logic here
+stock GivePlayerDamage(playerid, damagerid, Float:damage, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])  // Can rewrite with your GivePlayerDamage (OnFoot) logic here
 {
+	printf("\nGivePlayerDamage: %s (%d) - Damage: %d from %s %d\n", serverPlayers[playerid][name], playerid, damage, serverPlayers[damagerid][name], damagerid);
 	new Float:health, Float:armour;
 	if (!GetPlayerHealth(playerid, health))
 	    return;
@@ -312,7 +302,7 @@ stock GivePlayerDamage(playerid, damagerid, Float:damage)  // Can rewrite with y
 	{
 	    //SendDeathMessage(damagerid, playerid, RUSTLER_WEAPON_ID);
 	    ////playerDeathplayerid] = damagerid;
-	    //ForcePlayerDeath(playerid, damagerid, RUSTLER_WEAPON_ID);
+	    ForcePlayerDeath(playerid, damagerid, RUSTLER_WEAPON_ID, serverPlayers);
 	}
 	SetPlayerHealth(playerid, health - damage);
 	SetPVarInt(playerid, "Hit", damagerid);
@@ -333,3 +323,4 @@ stock IsPlayerSpawned(playerid)
 	new pState = GetPlayerState(playerid);
 	return 0 <= playerid <= MAX_PLAYERS && pState != PLAYER_STATE_NONE && pState != PLAYER_STATE_WASTED && pState != PLAYER_STATE_SPECTATING;
 }
+#endif
