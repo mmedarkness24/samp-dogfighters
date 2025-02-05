@@ -65,9 +65,11 @@ public OnGameModeInit()
 	SendRconCommand(string);
 	
 	//UsePedAnims(0);
-	AddPlayerClass(181,342.61,2533.93,17,270.1425,0,0,0,0,-1,-1);
-	AddPlayerClass(179,293.7,2031.31,18,270.1425,0,0,0,0,-1,-1);
-	AddPlayerClass(287,-1409.96,496.92,19,270.1425,0,0,0,0,-1,-1);
+	AddPlayerClass(181,342.61,2533.93,17,270.1425,0,0,0,0,-1,-1);// Punk
+	AddPlayerClass(179,293.7,2031.31,18,270.1425,0,0,0,0,-1,-1);//  Army SF
+	AddPlayerClass(287,-1409.96,496.92,19,270.1425,0,0,0,0,-1,-1);//    Army LV
+	AddPlayerClass(227,1687.82,1449.2,11,90,0,0,0,0,-1,-1);//    Dispatch
+    AddPlayerClass(61,1889.45, -2289, 13,0,0,0,0,-1,-1);//    Civil Pilot
 	return 1;
 }
 
@@ -219,6 +221,12 @@ public OnPlayerSpawn(playerid)
 public OnVehicleDeath(vehicleid, killerid)
 {
 	return ProcessVehicleDeath(vehicleid, killerid, _serverPlayers);
+}
+
+public OnPlayerRequestClass(playerid, classid)
+{
+	PlayerSelectClass(playerid, classid);
+	return 1;
 }
 
 public OnPlayerCommandText(playerid, cmdtext[])
