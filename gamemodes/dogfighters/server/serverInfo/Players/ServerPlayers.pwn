@@ -2,16 +2,18 @@
 	#define SERVER_PLAYERS
 	enum serverPlayer
 	{
-		bool:isConnected = false,
-		bool:isServerSideDamageSync = false,
-		name[MAX_PLAYER_NAME + 1],
+		//bool:isConnected = false,
+		//bool:isServerSideDamageSync = false,
+		flood,
 		language,
+		name[MAX_PLAYER_NAME + 1],
 		money,
 		vehicleID,
 		kills,
 		deaths,
 		Float:positionX,
 		Float:positionY,
-		Float:positionZ
+		Float:positionZ,
+		anticheat
 	}
 #endif

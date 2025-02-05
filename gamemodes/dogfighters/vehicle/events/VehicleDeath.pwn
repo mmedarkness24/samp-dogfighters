@@ -1,5 +1,4 @@
-#include"dogfighters\server\serverInfo\ServerPlayers.pwn"
-#include "dogfighters\server\serverInfo\ModeInfo.pwn"
+#include "dogfighters\server\serverInfo\serverMain.pwn"
 
 forward ProcessVehicleDeath(vehicleid, killerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 
