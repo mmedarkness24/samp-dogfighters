@@ -738,7 +738,7 @@ dcmd_setlang(playerid, params[])
 public setPlayerConnectionStatus(playerid, bool:isConnectedStatus)
 {
 	//_serverPlayers[playerid][isConnected] = isConnectedStatus;
-	if (IsPlayerConnected(playerid))
+	if (isConnectedStatus)
 	{
 	    new playerName[MAX_PLAYER_NAME + 1];
 		new result = GetPlayerName(playerid, playerName, sizeof(playerName));
