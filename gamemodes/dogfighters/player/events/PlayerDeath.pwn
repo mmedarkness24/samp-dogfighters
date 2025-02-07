@@ -13,7 +13,7 @@ public ForcePlayerDeath(playerid, killerid, reason, serverPlayers[MODE_MAX_PLAYE
 	printf("ForcePlayerDeath: killed: %s (%d), by %s %d", serverPlayers[playerid][name], playerid, serverPlayers[killerid][name], killerid);
 	SetPlayerHealth(playerid, 0);
 	new lastHit = GetPVarInt(playerid, "Hit");
-	if (killerid == playerid && lastHit != killerid && lastHit != -1)
+	if (killerid == playerid && lastHit != NOTSET)
 		killerid = lastHit;
 	SendDeathMessage(killerid, playerid, reason);
 	SetPVarInt(playerid, "Death", 1);

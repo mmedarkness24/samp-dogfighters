@@ -25,26 +25,45 @@
 #include <rotation_misc>
 #include <rotation_extra>
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#include <colandreas>   //  For collisions
-#include <Pawn.RakNet>  //  For bulletSync packets
 #include "dogfighters/player/events/PlayerDeath.pwn"
 #include "dogfighters\server\serverInfo\serverMain.pwn"
 
 //#define FILTERSCRIPT    //  For Pawn.RakNet :D
 
-#define DEBUG_MODE false //  To have extra prints in log
+#define DEBUG_MODE_FIREFIX false //  To have extra prints in log
 #define COLLISION_SEARCH_MIN_RADIUS 1   //  Radius near plane
 #define COLLISION_SEARCH_RADIUS_STEP 1  //  Step increasing radius
 #define COLLISION_SEARCH_MAX_RADIUS 5  //  Radius far away from plane
 #define COLLISION_MINIMAL_DISTANCE 10   //  Distance from plane to start search
 #define COLLISION_MAXIMAL_DISTANCE 200  //  Maximal search distance
 #define COLLISION_DISTANCE_STEP 10  //  Search for every 10 metres
+
 #define RUSTLER_DAMAGE_PLAYERS 10   //  Plane's damage to players
 #define RUSTLER_DAMAGE_VEHICLES 10  //  Damage to vehicles
 #define RUSTLER_DAMAGE_BODYPART 3   //  Bodypart to damage to (not used)
 #define RUSTLER_MODEL_ID 476    //  ModelID of Rustler plane
 #define RUSTLER_WEAPON_ID 31    //  WeaponID for killing messages / damage sync
-#define NOTSET -1
+
+#define HYDRA_SEARCH_MIN_RADIUS 5   //  Radius near plane (collision, hydra)
+#define HYDRA_SEARCH_RADIUS_STEP 1  //  Step increasing radius (collision, hydra)
+#define HYDRA_SEARCH_MAX_RADIUS 5  //  Radius far away from plane (collision, hydra)
+#define HYDRA_MINIMAL_DISTANCE 3   //  Distance from plane to start search (collision, hydra)
+#define HYDRA_MAXIMAL_DISTANCE 400  //  Maximal search distance (collision, hydra)
+#define HYDRA_DISTANCE_STEP 1  //  Search for every 10 metres (collision, hydra)
+#define HYDRA_MAXIMUM_ITERATIONS 300 //	Maximal number of iterations per missile
+
+#define HYDRA_EXPLOSION_TYPE 3		//	Hydra's explosion after maximal distance is reached
+#define HYDRA_MISSILE_SPEED 2.5		//	Meetres/100 ms
+#define HYDRA_MISSILE_ACCELERATION 0.5	//	Speed increase per tick (0.3)
+#define HYDRA_MAX_MISSILE_SPD 15.0	//	Maximum speed that hydra's missiles can reach
+#define HYDRA_DAMAGE_PLAYERS 70   //  Plane's damage to players
+#define HYDRA_DAMAGE_VEHICLES 800  //  Damage to vehicles
+#define HYDRA_DAMAGE_BODYPART 3   //  Bodypart to damage to (not used)
+#define HYDRA_MODEL_ID 520		//	ModelID of Hydra plane
+#define HYDRA_WEAPON_ID 51		//	WeaponID for killing messages / damage sync (Hydra)
+#define HYDRA_MISSILE_TIMER_ID 777
+
+#define MISSILES_SHELLS_MAX_COUNT 3
 
 #define BULLET_SYNC_ENABLE true // Set true if you want to send BulletSync packet when damaging player
 #define BULLET_SYNC_STREAM_ENABLE true  //  Set true if you want to send BulletSync to all players in victim's stream area
@@ -60,8 +79,6 @@
 forward OnCheckFireUpdate();
 //forward OnRustlerFiring(playerid, vehicleid);
 forward GetNearestPlayer(Float:x, Float:y, Float:z, Float:radius, playerid);
-
-new firingTimer[MAX_PLAYERS];
 //new _svrPlayers[MODE_MAX_PLAYERS][serverPlayer];
 //new playerDeath[MAX_PLAYERS];
 
@@ -95,6 +112,93 @@ public OnFilterScriptExit()
 	_svrPlayers = serverPlayers;//[MODE_MAX_PLAYERS][serverPlayer];
 }*/
 
+enum hydraMissileInfo
+{
+	Float:hydraMissileLaunchPositionX,
+	Float:hydraMissileLaunchPositionY,
+	Float:hydraMissileLaunchPositionZ,
+	Float:hydraMissileFinalPositionX,
+	Float:hydraMissileFinalPositionY,
+	Float:hydraMissileFinalPositionZ,
+	hydraMissileIteration,
+	timerid,
+	ownerid
+}
+
+forward AddHydraMissile(playerid, Float:x, Float:y, Float:z, Float:maximumX, Float:maximumY, Float:maximumZ, hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo]);
+forward FindMissileFreeSlot(playerid, hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo]);
+forward AddHydraMyssileTimer(playerid, hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo], missileTimerid);
+forward DestroyHydraMissile(missileIndex, hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo]);
+forward ResetHydraMissiles(hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo]);
+forward InitRustlerFireFix();
+
+public InitRustlerFireFix()
+{
+	/*for (new i = 0; i < MAX_PLAYERS; i++)
+	{
+	    firingTimer[i] = NOTSET;
+	    playerDeath[i] = NOTSET;
+	}*/
+}
+
+public AddHydraMissile(playerid, Float:x, Float:y, Float:z, Float:maximumX, Float:maximumY, Float:maximumZ, hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo])
+{
+	printf("AddHydraMissile(%d [%.2f;%.2f;%.2f] [%.2f;%.2f;%.2f]", playerid, x, y, z, maximumX, maximumY, maximumZ);
+	new slotIndex = FindMissileFreeSlot(playerid, hydraMissiles);
+	printf("slotIndex: %d", slotIndex);
+	hydraMissiles[slotIndex][hydraMissileLaunchPositionX] = x;
+	hydraMissiles[slotIndex][hydraMissileLaunchPositionY] = y;
+	hydraMissiles[slotIndex][hydraMissileLaunchPositionZ] = z;
+	hydraMissiles[slotIndex][hydraMissileFinalPositionX] = maximumX;
+	hydraMissiles[slotIndex][hydraMissileFinalPositionY] = maximumY;
+	hydraMissiles[slotIndex][hydraMissileFinalPositionZ] = maximumZ;
+	hydraMissiles[slotIndex][hydraMissileIteration] = 0;
+	hydraMissiles[slotIndex][ownerid] = playerid;
+	printf("Missile created at slot: %d owner: %d", slotIndex, hydraMissiles[slotIndex][ownerid]);
+	return slotIndex;
+}
+
+public FindMissileFreeSlot(playerid, hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo])
+{
+	if (hydraMissiles[playerid][timerid] == NOTSET)
+	{
+		hydraMissiles[playerid][timerid] = TIMER_WAITING_INIT;
+		return playerid;
+	}
+	for (new i = 1; i < MISSILES_SHELLS_MAX_COUNT; i++)
+	{
+		if (playerid > MODE_MAX_PLAYERS)
+			continue;
+		//new pid = playerid < MODE_MAX_PLAYERS && playerid || MODE_MAX_PLAYERS;
+		if (hydraMissiles[playerid * i][timerid] != NOTSET)
+			continue;
+		hydraMissiles[playerid * i][timerid] = TIMER_WAITING_INIT;
+		return i;
+	}
+	new slotIndex = playerid * (MISSILES_SHELLS_MAX_COUNT - 1);
+	KillTimer(hydraMissiles[slotIndex][timerid]);
+	return slotIndex;
+}
+
+public AddHydraMyssileTimer(playerid, hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo], missileTimerid)
+{
+	hydraMissiles[playerid][timerid] = missileTimerid;
+}
+
+public DestroyHydraMissile(missileIndex, hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo])
+{
+	KillTimer(hydraMissiles[missileIndex][timerid]);
+	hydraMissiles[missileIndex][timerid] = NOTSET;
+}
+
+public ResetHydraMissiles(hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo])
+{
+	for (new i = 0; i < MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT; i++)
+	{
+		hydraMissiles[i][timerid] = NOTSET;
+	}
+}
+
 public GetNearestPlayer(Float:x, Float:y, Float:z, Float:radius, playerid)
 {
 	new result = NOTSET;
@@ -121,7 +225,7 @@ public GetNearestPlayer(Float:x, Float:y, Float:z, Float:radius, playerid)
 	    KillFiringTimer(playerid);
 	    return;
 	}
-	#if DEBUG_MODE == true
+	#if DEBUG_MODE_FIREFIX == true
     printf("\n------------\n\n\nRustler fire from id: %d", playerid);
     #endif
     if (!IsPlayerInAnyVehicle(playerid))
@@ -146,7 +250,7 @@ public GetNearestPlayer(Float:x, Float:y, Float:z, Float:radius, playerid)
 		new Float:targetX, Float:targetY, Float:targetZ;
 		if (!GetPlayerPos(targetid, targetX, targetY, targetZ))
 		{
-		    #if DEBUG_MODE == true
+		    #if DEBUG_MODE_FIREFIX == true
 		    printf("bad target %d", targetid);
 		    #endif
 
@@ -155,7 +259,7 @@ public GetNearestPlayer(Float:x, Float:y, Float:z, Float:radius, playerid)
 
 		if (CA_RayCastLine(spositionX, spositionY, spositionZ, targetX, targetY, targetZ, castX, castY, castZ) != 0)
         {
-            #if DEBUG_MODE == true
+            #if DEBUG_MODE_FIREFIX == true
 			printf("!!![COLLISION FOUND: %.2f %.2f %.2f] (Player %d is behind the object)", castX, castY, castZ, targetid);
 			#endif
 
@@ -179,7 +283,7 @@ public GetNearestPlayer(Float:x, Float:y, Float:z, Float:radius, playerid)
 		if (IsPlayerInAnyVehicle(targetid))
 		{
 			new targetvehicleid = GetPlayerVehicleID(targetid);
-			#if DEBUG_MODE == true
+			#if DEBUG_MODE_FIREFIX == true
 		    printf("%d damaged vehicle: %d(player: %d)", playerid, targetvehicleid, targetid);
 		    #endif
 		    
@@ -195,7 +299,7 @@ public GetNearestPlayer(Float:x, Float:y, Float:z, Float:radius, playerid)
 		}
 		else
 		{
-		    #if DEBUG_MODE == true
+		    #if DEBUG_MODE_FIREFIX == true
 		    printf("%d damaged player: %d", playerid, targetid);
 		    #endif
 		    new Float:playerhealth = 100;
@@ -210,7 +314,7 @@ public GetNearestPlayer(Float:x, Float:y, Float:z, Float:radius, playerid)
             break;
 		}
 	}
-	#if DEBUG_MODE == true
+	#if DEBUG_MODE_FIREFIX == true
     printf("---------");
     #endif
 }*/
@@ -256,34 +360,42 @@ stock SendBulletSync(playerid, victimid, data[PR_BulletSync])
     new FuncName[16] = "OnRustlerFiring";
 	firingTimer[playerid] = SetTimerEx(FuncName, 100, true, "ii", playerid, vehicleid);
 }*/
-
-stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+#include "dogfighters/vehicle/vehicleMain.pwn"
+stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
+	printf("GiveVehicleDamage: [%d] %s (%d) from %s (%d) - dmg:%.2f rsn:%d", vehicleid, serverPlayers[targetid][name], targetid, serverPlayers[damagerid][name], damagerid, damage, reason);
     new Float:vehiclehealth = 1000;
     if (!GetVehicleHealth(vehicleid, vehiclehealth))
         return 0;
     if (vehiclehealth - RUSTLER_DAMAGE_VEHICLES < 150 && vehiclehealth > 0)
     {
+		printf("VehicleHealth < 150");
         new Float:targetX, Float:targetY, Float:targetZ;
         GetVehiclePos(vehicleid, targetX, targetY, targetZ);
         //SendDeathMessage(damagerid, targetid, RUSTLER_WEAPON_ID);
         //playerDeathtargetid] = damagerid;
         CreateExplosion(targetX, targetY, targetZ, 2, 3);
-        SetVehicleHealth(vehicleid, 0);
-        ForcePlayerDeath(targetid, damagerid, RUSTLER_WEAPON_ID, serverPlayers);
+        //SetVehicleHealth(vehicleid, 0);
+		destroyPlayerVehicle(targetid, serverPlayers);
+        ForcePlayerDeath(targetid, damagerid, reason, serverPlayers);
         SetPlayerHealth(targetid, 0);
+		SetPVarInt(targetid, "Hit", damagerid);
+		SetPVarInt(targetid, "HReason", reason);
 	}
 	else
 	{
-	    SetVehicleHealth(vehicleid, vehiclehealth - RUSTLER_DAMAGE_VEHICLES);
-	    SetPVarInt(targetid, "Hit", damagerid);
-	    SetPVarInt(targetid, "HReason", RUSTLER_WEAPON_ID);
+		printf("VehicleHealth > 150");
+	    SetVehicleHealth(vehicleid, vehiclehealth - damage);
+		GivePlayerDamage(targetid, damagerid, damage * 0.3, reason, serverPlayers);
+	    /*SetPVarInt(targetid, "Hit", damagerid);
+	    SetPVarInt(targetid, "HReason", reason);*/
  	}
+	
 
     return 1;
 }
 
-stock GivePlayerDamage(playerid, damagerid, Float:damage, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])  // Can rewrite with your GivePlayerDamage (OnFoot) logic here
+stock GivePlayerDamage(playerid, damagerid, Float:damage, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])  // Can rewrite with your GivePlayerDamage (OnFoot) logic here
 {
 	printf("\nGivePlayerDamage: %s (%d) - Damage: %d from %s %d\n", serverPlayers[playerid][name], playerid, damage, serverPlayers[damagerid][name], damagerid);
 	new Float:health, Float:armour;
@@ -302,20 +414,14 @@ stock GivePlayerDamage(playerid, damagerid, Float:damage, serverPlayers[MODE_MAX
 	{
 	    //SendDeathMessage(damagerid, playerid, RUSTLER_WEAPON_ID);
 	    ////playerDeathplayerid] = damagerid;
-	    ForcePlayerDeath(playerid, damagerid, RUSTLER_WEAPON_ID, serverPlayers);
+	    ForcePlayerDeath(playerid, damagerid, reason, serverPlayers);
 	}
 	SetPlayerHealth(playerid, health - damage);
 	SetPVarInt(playerid, "Hit", damagerid);
-	SetPVarInt(playerid, "HReason", RUSTLER_WEAPON_ID);
-	#if DEBUG_MODE == true
+	SetPVarInt(playerid, "HReason", reason);
+	#if DEBUG_MODE_FIREFIX == true
 	printf("Damage has given to %d", playerid);
 	#endif
-}
-
-stock KillFiringTimer(playerid)
-{
-    KillTimer(firingTimer[playerid]);
-	firingTimer[playerid] = NOTSET;
 }
 
 stock IsPlayerSpawned(playerid)
