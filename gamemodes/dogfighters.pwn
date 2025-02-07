@@ -1,6 +1,8 @@
 #include <a_samp>
 #include <core>
 #include <float>
+#include <colandreas>   //  For collisions
+#include <Pawn.RakNet>  //  For bulletSync packets
 
 #include "sscanf2.inc"
 
@@ -22,12 +24,15 @@
 
 forward setPlayerConnectionStatus(playerid, bool:isConnectedStatus);
 
-forward destroyPlayerVehicle(playerid);
 forward OnRustlerFiring(playerid, vehicleid);
+//forward OnHydraFiring(playerid, vehicleid);
 
-forward OnUpdate();
+forward OnUpdateShort();
+forward OnUpdateLong();
 
 new _serverPlayers[MODE_MAX_PLAYERS][serverPlayer];
+new _hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo];
+new firingTimer[MAX_PLAYERS];
 
 main()
 {
@@ -58,11 +63,25 @@ public OnGameModeInit()
 	AddPlayerClass(179,293.7,2031.31,18,270.1425,0,0,0,0,-1,-1);//  Army SF
 	AddPlayerClass(287,-1409.96,496.92,19,270.1425,0,0,0,0,-1,-1);//    Army LV
 	AddPlayerClass(227,1687.82,1449.2,11,90,0,0,0,0,-1,-1);//    Dispatch
-    AddPlayerClass(61,1889.45, -2289, 13,0,0,0,0,-1,-1);//    Civil Pilot
+    AddPlayerClass(61,1889.45,-2289,13,0,0,0,0,-1,-1);//    Civil Pilot
+
+	ResetHydraMissiles(_hydraMissiles);
+	for (new i = 0; i < MAX_PLAYERS; i++)
+	{
+	    firingTimer[i] = NOTSET;
+	}
+	if (!CA_Init())
+	    printf("[planesFireFix]: cannot create raycast world. Script may not work well.");
     
     //RegisterServerPlayers(_serverPlayers);
+    SetTimer("OnUpdateShort", 100, true);
     SetTimer("OnUpdateLong", 1000, true);
 	return 1;
+}
+
+public OnUpdateShort()
+{
+    OnHydraUpdateMissiles(_hydraMissiles, _serverPlayers);
 }
 
 public OnUpdateLong()
@@ -97,12 +116,26 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
     if ((newkeys & KEY_ACTION) && !(oldkeys & KEY_ACTION) && IsPlayerInAnyVehicle(playerid))
     {
         new vehicleid = GetPlayerVehicleID(playerid);
-        if (GetVehicleModel(vehicleid) != RUSTLER_MODEL_ID)
-            return 0;
-		AddPlayerFiringTimer(playerid, vehicleid);
+        /*if (GetVehicleModel(vehicleid) != RUSTLER_MODEL_ID)
+            return 0;*/
+		switch(GetVehicleModel(vehicleid))
+		{
+		    case RUSTLER_MODEL_ID:
+		    {
+		        AddPlayerFiringTimerRustler(playerid, vehicleid);
+		    }
+		    case HYDRA_MODEL_ID:
+		    {
+		        AddPlayerFiringTimerHydra(playerid, vehicleid);
+		    }
+		}
+		
 	}
 	if ((oldkeys & KEY_ACTION) && !(newkeys & KEY_ACTION))
 	{
+	    new vehicleid = GetPlayerVehicleID(playerid);
+        if (GetVehicleModel(vehicleid) != RUSTLER_MODEL_ID)
+            return 0;
 	    if (firingTimer[playerid] != NOTSET)
 	        KillFiringTimer(playerid);
 	}
@@ -287,7 +320,6 @@ dcmd_vehicle(playerid, params[])
             showSelectVehicleDialog(playerid, _serverPlayers);
             return 1;
 		}
-		
 	}
 	if (color1 < 0 || color2 < 0)
 	{
@@ -313,33 +345,11 @@ dcmd_vehicle(playerid, params[])
 		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Неверный ID автомобиля 181");
 		return 1;
 	}
- 	destroyPlayerVehicle(playerid);
+ 	
 	new Float:x, Float:y, Float:z, Float:facingAngle;
 	GetPlayerPos(playerid, x, y, z);
 	GetPlayerFacingAngle(playerid, facingAngle);
-	new result = CreateVehicle(vehID, x, y, z + 2, facingAngle, color1, color2, -1, 0);
-	if (!result || result == INVALID_VEHICLE_ID)
-	{
-		if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Wrong vehicle ID! 191");
-		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Неверный ID автомобиля 193");
-	}
-	_serverPlayers[playerid][vehicleID] = result;
-	result = PutPlayerInVehicle(playerid, _serverPlayers[playerid][vehicleID], 0);
-	if (!result)
-	{
-	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Unknown error when creating vehicle! 200");
-		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Неизвестная ошибка при создании авто! 201");
-		destroyPlayerVehicle(playerid);
-		return 1;
-	}
-	if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Vehicle created!");
-		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Авто создано!");
+	GivePlayerVehicle(playerid, vehID, x, y, z, facingAngle, color1, color2, -1, 0, _serverPlayers);
 		    
 	new messageEnglish[MAX_PLAYER_NAME + 46];
 	format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has taken a new vehicle: %d", _serverPlayers[playerid][name], playerid, vehID);
@@ -772,19 +782,12 @@ public setPlayerConnectionStatus(playerid, bool:isConnectedStatus)
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 }
-public destroyPlayerVehicle(playerid)
-{
-	if (_serverPlayers[playerid][vehicleID] == 0)
-	    return;
-    DestroyVehicle(_serverPlayers[playerid][vehicleID]);
-    _serverPlayers[playerid][vehicleID] = 0;
-}
 
 public OnRustlerFiring(playerid, vehicleid)
 {
 	if (!IsPlayerConnected(playerid) || !IsPlayerSpawned(playerid) || !IsPlayerInAnyVehicle(playerid))
 	{
-	    KillFiringTimer(playerid);
+	    KillFiringTimer(playerid, 0);
 	    return;
 	}
 	#if DEBUG_MODE == true
@@ -792,8 +795,8 @@ public OnRustlerFiring(playerid, vehicleid)
     #endif
     if (!IsPlayerInAnyVehicle(playerid))
 		KillFiringTimer(playerid);
-	new Float:spositionX, Float:spositionY, Float:spositionZ;
-	GetVehiclePos(vehicleid, spositionX, spositionY, spositionZ);
+	new Float:vehPositionX, Float:vehPositionY, Float:vehPositionZ;
+	GetVehiclePos(vehicleid, vehPositionX, vehPositionY, vehPositionZ);
 	new Float:offsetX, Float:offsetY, Float:offsetZ;
 	new Float:castX, Float:castY, Float:castZ;
 	new targetid = NOTSET;
@@ -813,13 +816,13 @@ public OnRustlerFiring(playerid, vehicleid)
 		if (!GetPlayerPos(targetid, targetX, targetY, targetZ))
 		{
 		    #if DEBUG_MODE == true
-		    //printf("bad target %d", targetid);
+		    printf("bad target %d", targetid);
 		    #endif
 
 		    break;
 		}
 
-		if (CA_RayCastLine(spositionX, spositionY, spositionZ, targetX, targetY, targetZ, castX, castY, castZ) != 0)
+		if (CA_RayCastLine(vehPositionX, vehPositionY, vehPositionZ, targetX, targetY, targetZ, castX, castY, castZ) != 0)
         {
             #if DEBUG_MODE == true
 			printf("!!![COLLISION FOUND: %.2f %.2f %.2f] (Player %d is behind the object)", castX, castY, castZ, targetid);
@@ -830,9 +833,9 @@ public OnRustlerFiring(playerid, vehicleid)
 		#if BULLET_SYNC_ENABLE == true
 		new bulletData[PR_BulletSync];  //To send bulletData
 		bulletData[PR_hitId] = targetid;
-		bulletData[PR_origin][0] = spositionX;
-		bulletData[PR_origin][1] = spositionY;
-		bulletData[PR_origin][2] = spositionZ;
+		bulletData[PR_origin][0] = vehPositionX;
+		bulletData[PR_origin][1] = vehPositionY;
+		bulletData[PR_origin][2] = vehPositionZ;
 		bulletData[PR_hitPos][0] = targetX;
         bulletData[PR_hitPos][1] = targetY;
         bulletData[PR_hitPos][2] = targetZ;
@@ -846,10 +849,10 @@ public OnRustlerFiring(playerid, vehicleid)
 		{
 			new targetvehicleid = GetPlayerVehicleID(targetid);
 			#if DEBUG_MODE == true
-		    //printf("%d damaged vehicle: %d(player: %d)", playerid, targetvehicleid, targetid);
+		    printf("%d damaged vehicle: %d(player: %d)", playerid, targetvehicleid, targetid);
 		    #endif
 
-			if (!GiveVehicleDamage(targetvehicleid, targetid, playerid, RUSTLER_DAMAGE_VEHICLES, _serverPlayers))
+			if (!GiveVehicleDamage(targetvehicleid, targetid, playerid, RUSTLER_DAMAGE_VEHICLES, RUSTLER_WEAPON_ID, _serverPlayers))
 			    continue;
 		    // SetVehicleHealth(targetvehicleid, vehiclehealth - RUSTLER_DAMAGE_VEHICLES);  //  Can rewrite with you GiveVehicleDamage logic here
 		    #if BULLET_SYNC_ENABLE == true
@@ -867,7 +870,7 @@ public OnRustlerFiring(playerid, vehicleid)
 		    new Float:playerhealth = 100;
             if (!GetPlayerHealth(targetid, playerhealth))
 		        continue;
-            GivePlayerDamage(targetid, playerid, RUSTLER_DAMAGE_PLAYERS, _serverPlayers);
+            GivePlayerDamage(targetid, playerid, RUSTLER_DAMAGE_PLAYERS, RUSTLER_WEAPON_ID, _serverPlayers);
             #if BULLET_SYNC_ENABLE == true
             bulletData[PR_hitType] = BULLET_HIT_TYPE_PLAYER;
             SendBulletSync(playerid, targetid, bulletData);
@@ -876,16 +879,191 @@ public OnRustlerFiring(playerid, vehicleid)
             break;
 		}
 	}
+	//	KillFiringTimer(playerid, 0);
 	#if DEBUG_MODE == true
     printf("---------");
     #endif
 }
 
-stock AddPlayerFiringTimer(playerid, vehicleid)
+
+
+/*public OnHydraFiring(playerid, vehicleid, timerid)
+{
+    new timerIndex = FindFiringTimerIndex(playerid, timerid);
+    if (timerIndex == -1)
+	{
+	    printf("Cannot find timer index for timerid: %d (player: %s (%d))", timerid, _serverPlayers[playerid][name], playerid);
+	    return;
+	}
+	if (!IsPlayerConnected(playerid) || !IsPlayerSpawned(playerid) || !IsPlayerInAnyVehicle(playerid))
+	{
+	    KillFiringTimer(playerid, timerIndex);
+	    return;
+	}
+	#if DEBUG_MODE == true
+    //printf("\n------------\n\n\nRustler fire from id: %d", playerid);
+    #endif
+    if (!IsPlayerInAnyVehicle(playerid))
+		KillFiringTimer(playerid, timerIndex);
+		
+	new Float:spositionX, Float:spositionY, Float:spositionZ;
+	GetVehiclePos(vehicleid, spositionX, spositionY, spositionZ);
+	new Float:offsetX, Float:offsetY, Float:offsetZ;
+	new Float:castX, Float:castY, Float:castZ;
+	new targetid = NOTSET;
+	//new searchRadius = HYDRA_SEARCH_MIN_RADIUS ;//HYDRA_SEARCH_MIN_RADIUS
+
+	GetVehicleRelativePos(vehicleid, 0, i, 0, offsetX, offsetY, offsetZ);
+	targetid = GetNearestPlayer(offsetX, offsetY, offsetZ, HYDRA_SEARCH_MIN_RADIUS, playerid);
+
+	if (targetid == NOTSET)
+	    continue;
+
+	new Float:targetX, Float:targetY, Float:targetZ;
+	if (!GetPlayerPos(targetid, targetX, targetY, targetZ))
+	{
+	    #if DEBUG_MODE == true
+	    //printf("bad target %d", targetid);
+	    #endif
+
+	    break;
+	}
+
+	if (CA_RayCastLine(spositionX, spositionY, spositionZ, targetX, targetY, targetZ, castX, castY, castZ) != 0)
+    {
+        #if DEBUG_MODE == true
+		printf("!!![COLLISION FOUND: %.2f %.2f %.2f] (Player %d is behind the object)", castX, castY, castZ, targetid);
+		#endif
+
+		break;
+	}
+	#if BULLET_SYNC_ENABLE == true
+	new bulletData[PR_BulletSync];  //To send bulletData
+	bulletData[PR_hitId] = targetid;
+	bulletData[PR_origin][0] = spositionX;
+	bulletData[PR_origin][1] = spositionY;
+	bulletData[PR_origin][2] = spositionZ;
+	bulletData[PR_hitPos][0] = targetX;
+    bulletData[PR_hitPos][1] = targetY;
+    bulletData[PR_hitPos][2] = targetZ;
+    bulletData[PR_offsets][0] = 0;
+    bulletData[PR_offsets][1] = 0;
+    bulletData[PR_offsets][2] = 0;
+    bulletData[PR_weaponId] = HYDRA_WEAPON_ID;
+    #endif
+
+	if (IsPlayerInAnyVehicle(targetid))
+	{
+		new targetvehicleid = GetPlayerVehicleID(targetid);
+		#if DEBUG_MODE == true
+	    //printf("%d damaged vehicle: %d(player: %d)", playerid, targetvehicleid, targetid);
+	    #endif
+
+		if (!GiveVehicleDamage(targetvehicleid, targetid, playerid, HYDRA_DAMAGE_VEHICLES, _serverPlayers))
+		    continue;
+	    // SetVehicleHealth(targetvehicleid, vehiclehealth - RUSTLER_DAMAGE_VEHICLES);  //  Can rewrite with you GiveVehicleDamage logic here
+	    #if BULLET_SYNC_ENABLE == true
+	    bulletData[PR_hitType] = BULLET_HIT_TYPE_VEHICLE;
+	    SendBulletSync(playerid, targetvehicleid, bulletData);
+	    #endif
+
+	    break;
+	}
+	else
+	{
+	    #if DEBUG_MODE == true
+	    printf("%d damaged player: %d", playerid, targetid);
+	    #endif
+	    new Float:playerhealth = 100;
+        if (!GetPlayerHealth(targetid, playerhealth))
+	        continue;
+        GivePlayerDamage(targetid, playerid, HYDRA_DAMAGE_PLAYERS, _serverPlayers);
+        #if BULLET_SYNC_ENABLE == true
+        bulletData[PR_hitType] = BULLET_HIT_TYPE_PLAYER;
+        SendBulletSync(playerid, targetid, bulletData);
+        #endif
+
+        break;
+	}
+	
+	if (_hydraMissiles[playerid] >= HYDRA_MAXIMAL_DISTANCE)
+        KillFiringTimer(playerid, timerIndex);
+
+	#if DEBUG_MODE == true
+    printf("---------");
+    #endif
+}*/
+
+stock AddPlayerFiringTimerRustler(playerid, vehicleid)
 {
 	if (firingTimer[playerid] != NOTSET)
 	    KillFiringTimer(playerid);
 	//RegisterServerPlayers(serverPlayers);
     new FuncName[16] = "OnRustlerFiring";
 	firingTimer[playerid] = SetTimerEx(FuncName, 100, true, "ii", playerid, vehicleid);
+	//SetTimerEx(FuncName, 100, false, "ii", playerid, vehicleid);
+}
+
+stock AddPlayerFiringTimerHydra(playerid, vehicleid)
+{
+	printf("AddPlayerFiringTimerHydra %s (%d) - (%d)", _serverPlayers[playerid][name], playerid, vehicleid);
+    new FuncName[16] = "OnHydraFiring";
+    new Float:vehiclePosX, Float:vehiclePosY, Float:vehiclePosZ, Float:finishPosX, Float:finishPosY, Float:finishPosZ;
+    new Float:castX, Float:castY, Float:castZ;
+    //GetVehiclePos(vehicleid, vehiclePosX, vehiclePosY, vehiclePosZ);
+    GetVehicleRelativePos(vehicleid, 0, HYDRA_MINIMAL_DISTANCE, 0, vehiclePosX, vehiclePosY, vehiclePosZ);
+    GetVehicleRelativePos(vehicleid, 0, HYDRA_MAXIMAL_DISTANCE, 0, finishPosX, finishPosY, finishPosZ);
+    if (CA_RayCastLine(vehiclePosX, vehiclePosY, vehiclePosZ, finishPosX, finishPosY, finishPosZ, castX, castY, castZ) != 0)
+    {
+        #if DEBUG_MODE == true
+		printf("!!![COLLISION FOUND: %.2f %.2f %.2f] ", castX, castY, castZ);
+		#endif
+        finishPosX = castX;
+        finishPosY = castY;
+        finishPosZ = castZ;
+		//return;
+	}
+	new missile = AddHydraMissile(
+	                            playerid,
+								vehiclePosX,
+								vehiclePosY,
+								vehiclePosZ,
+								finishPosX,
+								finishPosY,
+								finishPosZ,
+								_hydraMissiles);
+	//new missileTimerID = SetTimerEx(FuncName, 100, true, "iii", playerid, vehicleid, missile);
+	AddHydraMyssileTimer(playerid, _hydraMissiles, HYDRA_MISSILE_TIMER_ID);//missileTimerID);
+	print("AddPlayerFiringTimerHydra end");
+	//AddFiringTimer(playerid, timerID);
+}
+
+/*stock AddFiringTimer(playerid, timerid)
+{
+	for (new i = 0; i < MISSILES_SHELLS_MAX_COUNT; i++)
+	{
+	    if (firingTimer[playerid][i] != NOTSET)
+	        continue;
+		KillTimer(firingTimer[playerid][i]);
+		firingTimer[playerid][i] = timerid;
+		return;
+	}
+	KillTimer(firingTimer[playerid][MISSILES_SHELLS_MAX_COUNT - 1]);
+	firingTimer[playerid][MISSILES_SHELLS_MAX_COUNT - 1] = timerid;
+}
+
+stock FindFiringTimerIndex(playerid, timerid)
+{
+	for (new i = 0; i < MISSILES_SHELLS_MAX_COUNT; i++)
+	{
+	    if (firingTimer[playerid][i] == timerid)
+			return timerid;
+	}
+	return -1;
+}*/
+
+stock KillFiringTimer(playerid)
+{
+    KillTimer(firingTimer[playerid]);
+	firingTimer[playerid] = NOTSET;
 }

@@ -1,0 +1,4 @@
+#if !defined VEHICLE_EVENTS_CREATE
+#define VEHICLE_EVENTS_CREATE
+
+#endif
