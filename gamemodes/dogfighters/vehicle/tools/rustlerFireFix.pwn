@@ -376,11 +376,12 @@ stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage, reason, se
         //playerDeathtargetid] = damagerid;
         CreateExplosion(targetX, targetY, targetZ, 2, 3);
         //SetVehicleHealth(vehicleid, 0);
-		destroyPlayerVehicle(targetid, serverPlayers);
+		//destroyPlayerVehicle(targetid, serverPlayers);
         ForcePlayerDeath(targetid, damagerid, reason, serverPlayers);
-        SetPlayerHealth(targetid, 0);
+        //SetPlayerHealth(targetid, 0);
 		SetPVarInt(targetid, "Hit", damagerid);
 		SetPVarInt(targetid, "HReason", reason);
+		destroyPlayerVehicle(targetid, serverPlayers);
 	}
 	else
 	{

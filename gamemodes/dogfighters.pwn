@@ -32,7 +32,7 @@ forward OnUpdateLong();
 
 new _serverPlayers[MODE_MAX_PLAYERS][serverPlayer];
 new _hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo];
-new firingTimer[MAX_PLAYERS];
+new firingTimer[MODE_MAX_PLAYERS];
 
 main()
 {
@@ -43,7 +43,7 @@ main()
 		if (GetMaxPlayers() > MODE_MAX_PLAYERS)
 		{
 		    printf("\n[!WARNING!]: Server max players (%d) is more then this mode is supporting (%d)!", GetMaxPlayers(), MODE_MAX_PLAYERS);
-		    print("[!IMPORTANT!]: Some systems may not work correctly, please change \"maxplayers\" to value \"64\" or lower in server.cfg!");
+		    print("[!IMPORTANT!]: Some systems may not work correctly, and even cause server crash!\nplease change \"maxplayers\" to value \"64\" or lower in server.cfg!");
 		}
 		print("----------------------------------\n");
 }
@@ -66,9 +66,10 @@ public OnGameModeInit()
     AddPlayerClass(61,1889.45,-2289,13,0,0,0,0,-1,-1);//    Civil Pilot
 
 	ResetHydraMissiles(_hydraMissiles);
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	for (new i = 0; i < MODE_MAX_PLAYERS; i++)
 	{
 	    firingTimer[i] = NOTSET;
+		_serverPlayers[i][vehicleID] = NOTSET;
 	}
 	if (!CA_Init())
 	    printf("[planesFireFix]: cannot create raycast world. Script may not work well.");
@@ -133,6 +134,8 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 	}
 	if ((oldkeys & KEY_ACTION) && !(newkeys & KEY_ACTION))
 	{
+	    if (playerid > MODE_MAX_PLAYERS)
+	        return 0;
 	    new vehicleid = GetPlayerVehicleID(playerid);
         if (GetVehicleModel(vehicleid) != RUSTLER_MODEL_ID)
             return 0;
