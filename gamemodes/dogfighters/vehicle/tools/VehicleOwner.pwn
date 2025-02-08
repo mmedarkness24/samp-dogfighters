@@ -20,7 +20,8 @@ public FindVehicleOwner(severVehicleID, serverPlayers[MODE_MAX_PLAYERS][serverPl
 						vehicleOwner, 
 						serverPlayers[i][name], 
 						i);
-				serverPlayers[i][vehicleID] = NOTSET;
+				//serverPlayers[i][vehicleID] = NOTSET;
+				ServerPlayerResetVehicle(i, serverPlayers);
 			}
 			else
 				vehicleOwner = i;

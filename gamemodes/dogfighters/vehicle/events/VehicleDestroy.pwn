@@ -7,13 +7,14 @@ forward destroyPlayerVehicle(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPla
 
 public destroyPlayerVehicle(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
-	if (serverPlayers[playerid][vehicleID] == NOTSET)
+	if (!DoesServerPlayerHaveVehicle(playerid, serverPlayers))
 	{
 		printf("[vehicleDestroy] ERROR: destroyPlayerVehicleCheckID:\nplayer: %s (%d). Can't find his vehicle ID!", serverPlayers[playerid][name], playerid);
 	    return;
 	}
     DestroyVehicle(serverPlayers[playerid][vehicleID]);
-    serverPlayers[playerid][vehicleID] = NOTSET;
+    //serverPlayers[playerid][vehicleID] = NOTSET;
+	ServerPlayerResetVehicle(playerid, serverPlayers);
 }
 
 #endif

@@ -40,6 +40,15 @@ main()
 		printf("Running %s Gamemode\n", MODE_NAME);
 		printf("Author: %s", MODE_AUTHOR);
 		printf("Version: %s (%s)", MODE_VER_MAJOR, MODE_VER_UPDATE);
+		
+		for (new i = 0; i < MODE_MAX_PLAYERS; i++)
+		{
+		    firingTimer[i] = NOTSET;
+			//_serverPlayers[i][vehicleID] = NOTSET;
+		}
+		ResetHydraMissiles(_hydraMissiles);
+		ServerPlayersReset(_serverPlayers);
+		
 		if (GetMaxPlayers() > MODE_MAX_PLAYERS)
 		{
 		    printf("\n[!WARNING!]: Server max players (%d) is more then this mode is supporting (%d)!", GetMaxPlayers(), MODE_MAX_PLAYERS);
@@ -65,12 +74,6 @@ public OnGameModeInit()
 	AddPlayerClass(227,1687.82,1449.2,11,90,0,0,0,0,-1,-1);//    Dispatch
     AddPlayerClass(61,1889.45,-2289,13,0,0,0,0,-1,-1);//    Civil Pilot
 
-	ResetHydraMissiles(_hydraMissiles);
-	for (new i = 0; i < MODE_MAX_PLAYERS; i++)
-	{
-	    firingTimer[i] = NOTSET;
-		_serverPlayers[i][vehicleID] = NOTSET;
-	}
 	if (!CA_Init())
 	    printf("[planesFireFix]: cannot create raycast world. Script may not work well.");
     
@@ -162,7 +165,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			if (_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
 			    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "You will now receive english language messages from server");
 			else
-			    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Сообщения от сервера теперь будут приходить на Русском");
+			    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
 	    }
 	    case DIALOG_SELECT_VEHICLE:
 	    {
@@ -268,7 +271,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 
 public OnPlayerSpawn(playerid)
 {
-	return ProcessPlayerSpawn(playerid, _serverPlayers[playerid][money]);
+	return ProcessPlayerSpawn(playerid, _serverPlayers[playerid][money], _serverPlayers);
 }
 
 public OnVehicleDeath(vehicleid, killerid)
@@ -303,6 +306,10 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	dcmd(language,8,cmdtext);
 	dcmd(lang,4,cmdtext);
 	dcmd(setlang,7,cmdtext);
+	
+	dcmd(kill, 4, cmdtext);
+	
+	dcmd(reclass, 7, cmdtext);
 	return 0;
 }
 
@@ -337,7 +344,7 @@ dcmd_vehicle(playerid, params[])
 	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
 	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Wrong vehicle ID! 171");
 		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Неверный ID автомобиля 173");
+		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ID пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 173");
 		return 1;
 	}
 	if (VEHICLES_FORBIDDEN_MODELS_CHECK)
@@ -345,23 +352,23 @@ dcmd_vehicle(playerid, params[])
 	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
 	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Wrong vehicle ID! 179");
 		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Неверный ID автомобиля 181");
+		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ID пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 181");
 		return 1;
 	}
- 	
-	new Float:x, Float:y, Float:z, Float:facingAngle;
-	GetPlayerPos(playerid, x, y, z);
-	GetPlayerFacingAngle(playerid, facingAngle);
-	GivePlayerVehicle(playerid, vehID, x, y, z, facingAngle, color1, color2, -1, 0, _serverPlayers);
 		    
 	new messageEnglish[MAX_PLAYER_NAME + 46];
 	format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has taken a new vehicle: %d", _serverPlayers[playerid][name], playerid, vehID);
 	
 	new messageRussian[MAX_PLAYER_NAME + 46];
-	format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] заспавнил новый транспорт: %d", _serverPlayers[playerid][name], playerid, vehID);
+	format(messageRussian, sizeof(messageRussian), "пїЅпїЅпїЅпїЅпїЅ %s [%d] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: %d", _serverPlayers[playerid][name], playerid, vehID);
 	sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
     //SendClientMessageToAll(COLOR_SYSTEM_DISCORD, message);
-	return 1;
+	//return 1;
+	
+	new Float:x, Float:y, Float:z, Float:facingAngle;
+	GetPlayerPos(playerid, x, y, z);
+	GetPlayerFacingAngle(playerid, facingAngle);
+	return GivePlayerVehicle(playerid, vehID, x, y, z, facingAngle, color1, color2, -1, 0, _serverPlayers);
 }
 
 dcmd_veh(playerid, params[])
@@ -378,7 +385,7 @@ dcmd_heal(playerid, params[])
 {
 	if (!AddPlayerMoney(playerid, -1000, _serverPlayers))
 	{
-	    sendLocalizedMessage("Недостаточно денег, нужнно $1000", "Not enough money. $1000 is needed", COLOR_SYSTEM_DISCORD, _serverPlayers);
+	    sendLocalizedMessage("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅ $1000", "Not enough money. $1000 is needed", COLOR_SYSTEM_DISCORD, _serverPlayers);
 	    return 1;
 	}
 	SetPlayerHealth(playerid, 100);
@@ -388,7 +395,7 @@ dcmd_heal(playerid, params[])
 	format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been healed", _serverPlayers[playerid][name], playerid);
 
 	new messageRussian[MAX_PLAYER_NAME + 33];
-	format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] был исцелён", _serverPlayers[playerid][name], playerid);
+	format(messageRussian, sizeof(messageRussian), "пїЅпїЅпїЅпїЅпїЅ %s [%d] пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ", _serverPlayers[playerid][name], playerid);
 	sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	return 1;
 }
@@ -412,7 +419,7 @@ dcmd_repair(playerid, params[])
 {
     if (!AddPlayerMoney(playerid, -1000, _serverPlayers))
 	{
-	    sendLocalizedMessage("Недостаточно денег, нужнно $1000", "Not enough money. $1000 is needed", COLOR_SYSTEM_DISCORD, _serverPlayers);
+	    sendLocalizedMessage("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅ $1000", "Not enough money. $1000 is needed", COLOR_SYSTEM_DISCORD, _serverPlayers);
 	    return 1;
 	}
     new vehID = GetPlayerVehicleID(playerid);
@@ -423,7 +430,7 @@ dcmd_repair(playerid, params[])
 	format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] repaired his vehicle", _serverPlayers[playerid][name], playerid);
 
 	new messageRussian[MAX_PLAYER_NAME + 38];
-	format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] понинил своё авто", _serverPlayers[playerid][name], playerid);
+	format(messageRussian, sizeof(messageRussian), "пїЅпїЅпїЅпїЅпїЅ %s [%d] пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ", _serverPlayers[playerid][name], playerid);
 	sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	return 1;
 }
@@ -442,7 +449,7 @@ dcmd_teleport(playerid, params[])
 {
     if (!AddPlayerMoney(playerid, -100, _serverPlayers))
 	{
-	    sendLocalizedMessage("Недостаточно денег, нужнно $100", "Not enough money. $1000 is needed", COLOR_SYSTEM_DISCORD, _serverPlayers);
+	    sendLocalizedMessage("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅ $100", "Not enough money. $1000 is needed", COLOR_SYSTEM_DISCORD, _serverPlayers);
 	    return 1;
 	}
 	new Float:x, Float:y, Float:z;
@@ -456,7 +463,7 @@ dcmd_teleport(playerid, params[])
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to Las Venturas International Airport", _serverPlayers[playerid][name], playerid);
 
 		new messageRussian[MAX_PLAYER_NAME + 75];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в Международный Аэропорт Лас Вентурас", _serverPlayers[playerid][name], playerid);
+		format(messageRussian, sizeof(messageRussian), "пїЅпїЅпїЅпїЅпїЅ %s [%d] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", _serverPlayers[playerid][name], playerid);
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else if (!strcmp(params[0], "ls", true))
@@ -469,7 +476,7 @@ dcmd_teleport(playerid, params[])
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to Los Santos International Airport", _serverPlayers[playerid][name], playerid);
 
 		new messageRussian[MAX_PLAYER_NAME + 73];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в Международный Аэропорт Лос Сантос", _serverPlayers[playerid][name], playerid);
+		format(messageRussian, sizeof(messageRussian), "пїЅпїЅпїЅпїЅпїЅ %s [%d] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ", _serverPlayers[playerid][name], playerid);
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else if (!strcmp(params[0], "sf", true))
@@ -482,7 +489,7 @@ dcmd_teleport(playerid, params[])
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to San Fierro International Airport", _serverPlayers[playerid][name], playerid);
 
 		new messageRussian[MAX_PLAYER_NAME + 73];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в Международный Аэропорт Сан Фиерро", _serverPlayers[playerid][name], playerid);
+		format(messageRussian, sizeof(messageRussian), "пїЅпїЅпїЅпїЅпїЅ %s [%d] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ", _serverPlayers[playerid][name], playerid);
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else if (!strcmp(params[0], "desert", true))
@@ -537,7 +544,7 @@ dcmd_teleport(playerid, params[])
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to the Desert airspace", _serverPlayers[playerid][name], playerid);
 
 		new messageRussian[MAX_PLAYER_NAME + 61];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в полётную зону пустыни", _serverPlayers[playerid][name], playerid);
+		format(messageRussian, sizeof(messageRussian), "пїЅпїЅпїЅпїЅпїЅ %s [%d] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ", _serverPlayers[playerid][name], playerid);
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else if (!strcmp(params[0], "gate", true))
@@ -592,7 +599,7 @@ dcmd_teleport(playerid, params[])
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to the Golden Gate Bridge airspace", _serverPlayers[playerid][name], playerid);
 
 		new messageRussian[MAX_PLAYER_NAME + 73];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в полётную зону моста Золотые Ворота", _serverPlayers[playerid][name], playerid);
+		format(messageRussian, sizeof(messageRussian), "пїЅпїЅпїЅпїЅпїЅ %s [%d] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ", _serverPlayers[playerid][name], playerid);
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else if (!strcmp(params[0], "beach", true))
@@ -647,7 +654,7 @@ dcmd_teleport(playerid, params[])
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to the LS Beach airspace", _serverPlayers[playerid][name], playerid);
 
 		new messageRussian[MAX_PLAYER_NAME + 75];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в полётную зону Пляжа ЛС", _serverPlayers[playerid][name], playerid);
+		format(messageRussian, sizeof(messageRussian), "пїЅпїЅпїЅпїЅпїЅ %s [%d] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ", _serverPlayers[playerid][name], playerid);
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else if (!strcmp(params[0], "chill", true))
@@ -702,7 +709,7 @@ dcmd_teleport(playerid, params[])
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to the Chiliad airspace", _serverPlayers[playerid][name], playerid);
 
 		new messageRussian[MAX_PLAYER_NAME + 78];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] телепортировался в полётную зону горы Чилиад", _serverPlayers[playerid][name], playerid);
+		format(messageRussian, sizeof(messageRussian), "пїЅпїЅпїЅпїЅпїЅ %s [%d] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ", _serverPlayers[playerid][name], playerid);
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
 	else
@@ -716,7 +723,7 @@ dcmd_teleport(playerid, params[])
 	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
 	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/teleport]: Unknown place name");
 		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/teleport]: Данное место неизвестно");
+		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/teleport]: пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
 		return 1;
 	}
     new vehID = GetPlayerVehicleID(playerid);
@@ -748,6 +755,20 @@ dcmd_setlang(playerid, params[])
 	return dcmd_language(playerid, params);
 }
 
+dcmd_kill(playerid, params[])
+{
+	SetPlayerHealth(playerid, 0);
+	return 1;
+}
+
+dcmd_reclass(playerid, params[])
+{
+	ForceClassSelection(playerid);
+	TogglePlayerSpectating(playerid, true);
+    TogglePlayerSpectating(playerid, false);
+	return 1;
+}
+
 public setPlayerConnectionStatus(playerid, bool:isConnectedStatus)
 {
 	//_serverPlayers[playerid][isConnected] = isConnectedStatus;
@@ -761,13 +782,14 @@ public setPlayerConnectionStatus(playerid, bool:isConnectedStatus)
 		    printf("Cannot get player's name: %s (%d)", playerName, playerid);
 		}
 		#endif
-		_serverPlayers[playerid][name] = playerName;
+		//_serverPlayers[playerid][name] = playerName;
+		ServerPlayerSetName(playerid, playerName, _serverPlayers);
 		
 		new messageEnglish[MAX_PLAYER_NAME + 45];
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been connected to server!", _serverPlayers[playerid][name], playerid);
 
 		new messageRussian[MAX_PLAYER_NAME + 36];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] подключился к серверу", _serverPlayers[playerid][name], playerid);
+		format(messageRussian, sizeof(messageRussian), "пїЅпїЅпїЅпїЅпїЅ %s [%d] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ", _serverPlayers[playerid][name], playerid);
 		
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
@@ -780,7 +802,7 @@ public setPlayerConnectionStatus(playerid, bool:isConnectedStatus)
 		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been disconnected from server=(", _serverPlayers[playerid][name], playerid);
 
 		new messageRussian[MAX_PLAYER_NAME + 38];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] отключился от сервера=(", _serverPlayers[playerid][name], playerid);
+		format(messageRussian, sizeof(messageRussian), "пїЅпїЅпїЅпїЅпїЅ %s [%d] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ=(", _serverPlayers[playerid][name], playerid);
 
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
 	}
