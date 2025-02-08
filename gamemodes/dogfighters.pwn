@@ -783,8 +783,8 @@ dcmd_reclass(playerid, const params[])
 dcmd_pm(playerid, const params[])
 {
 	new messageTo;
-	new messageText[256];
-	if (sscanf(params, "ds", messageTo, messageText))
+	new messageText[148];
+	if (sscanf(params, "ds[148]", messageTo, messageText))
 	{
         if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
 	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/pm] Syntax: /pm [id] [message]");
@@ -800,28 +800,24 @@ dcmd_pm(playerid, const params[])
 		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/pm]: Неверный id игрока, либо это ваш собственный id");
 		return 1;
 	}
-	new messageToSend[70];
+	new messageToSend[74];
 	if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
 	    format(messageToSend, sizeof(messageToSend), "[PM] Private message from %s (%d): %s", _serverPlayers[playerid][name], playerid, messageText);
 	else
 	    format(messageToSend, sizeof(messageToSend), "[ЛС] Личное сообщение от %s (%d):  %s", _serverPlayers[playerid][name], playerid, messageText);
  	SendClientMessage(messageTo, COLOR_SYSTEM_MAIN, messageToSend);
-	while (strlen(messageText) > 0)
-	{
-	    strdel(messageText, 0, 69);
-	    format(messageToSend, sizeof(messageToSend), "%s", messageText);
-	    SendClientMessage(messageTo, COLOR_SYSTEM_MAIN, messageToSend);
-	}
-	
-	if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+ 	
+ 	if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
 	    format(messageToSend, sizeof(messageToSend), "[PM] Private message to %s (%d): %s", _serverPlayers[messageTo][name], messageTo, messageText);
 	else
 	    format(messageToSend, sizeof(messageToSend), "[ЛС] Личное сообщение для %s (%d):  %s", _serverPlayers[messageTo][name], messageTo, messageText);
  	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, messageToSend);
+ 	
 	while (strlen(messageText) > 0)
 	{
-	    strdel(messageText, 0, 69);
+	    strdel(messageText, 0, 73);
 	    format(messageToSend, sizeof(messageToSend), "%s", messageText);
+	    SendClientMessage(messageTo, COLOR_SYSTEM_MAIN, messageToSend);
 	    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, messageToSend);
 	}
 	return 1;
