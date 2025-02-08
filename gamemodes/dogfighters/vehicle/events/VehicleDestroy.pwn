@@ -12,6 +12,7 @@ public destroyPlayerVehicle(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlay
 		printf("[vehicleDestroy] ERROR: destroyPlayerVehicleCheckID:\nplayer: %s (%d). Can't find his vehicle ID!", serverPlayers[playerid][name], playerid);
 	    return;
 	}
+	FindVehicleOwner(serverPlayers[playerid][vehicleID], serverPlayers);
     DestroyVehicle(serverPlayers[playerid][vehicleID]);
     //serverPlayers[playerid][vehicleID] = NOTSET;
 	ServerPlayerResetVehicle(playerid, serverPlayers);

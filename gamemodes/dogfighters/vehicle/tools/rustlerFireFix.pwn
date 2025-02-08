@@ -387,7 +387,7 @@ stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage, reason, se
 	{
 		printf("VehicleHealth > 150");
 	    SetVehicleHealth(vehicleid, vehiclehealth - damage);
-		GivePlayerDamage(targetid, damagerid, damage * 0.3, reason, serverPlayers);
+		GivePlayerDamage(targetid, damagerid, damage * 0.1, reason, serverPlayers);
 	    /*SetPVarInt(targetid, "Hit", damagerid);
 	    SetPVarInt(targetid, "HReason", reason);*/
  	}

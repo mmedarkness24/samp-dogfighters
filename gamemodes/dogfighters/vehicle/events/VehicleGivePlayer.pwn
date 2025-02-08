@@ -11,9 +11,9 @@ public GivePlayerVehicle(playerid, modelID, Float:x, Float:y, Float:z, Float:fac
 {
 	if (DoesServerPlayerHaveVehicle(playerid, serverPlayers))
 	{
-		new ownerid = FindVehicleOwner(serverPlayers[playerid][vehicleID], serverPlayers);
-		if (ownerid == playerid)	//	Try to fix bug with same vehid
-			destroyPlayerVehicle(playerid, serverPlayers);
+		/*new ownerid = FindVehicleOwner(serverPlayers[playerid][vehicleID], serverPlayers);
+		if (ownerid == playerid)*/	//	Try to fix bug with same vehid
+		destroyPlayerVehicle(playerid, serverPlayers);
 	}
 	new result = CreateVehicle(modelID, x, y, z + 2, facingAngle, color1, color2, -1, 0);
 	printf("Spawning a vehicle %d for player %s (%d)", result, serverPlayers[playerid][name], playerid);
