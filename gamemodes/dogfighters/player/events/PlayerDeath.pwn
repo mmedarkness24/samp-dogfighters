@@ -24,6 +24,7 @@ public ForcePlayerDeath(playerid, killerid, reason, serverPlayers[MODE_MAX_PLAYE
 
 public ProcessPlayerDeath(playerid,	killerid, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
+	printf("ProcessPlayerDeath[pre]: pid %d kil %d reason: %d", playerid, killerid, reason);
 	if (GetPVarInt(playerid, "Death") == 1)
 		return 0;
 	SetPVarInt(playerid, "Death", 1);
@@ -37,13 +38,20 @@ public ProcessPlayerDeath(playerid,	killerid, reason, serverPlayers[MODE_MAX_PLA
 		serverPlayers[playerid][money],
 		serverPlayers[killerid][name],
 		serverPlayers[killerid][money]);
-	if (killerid == 65535 && lastHit != -1)
+	if (killerid == 65535 && lastHit != NOTSET)
 	{
 		killerid = lastHit;
 		reason = GetPVarInt(playerid, "HReason");
 	}
 	switch(reason)
 	{
+		case 14://	Flowers
+		{
+			AddPlayerDeaths(playerid, 1, serverPlayers);
+	        SendDeathMessage(killerid, playerid, reason);
+			ProcessPlayerKill(killerid, playerid, reason, serverPlayers);
+			return 0;
+		}
 		case 31://	M4
 		{
 			AddPlayerDeaths(playerid, 1, serverPlayers);

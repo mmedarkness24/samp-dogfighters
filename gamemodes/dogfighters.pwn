@@ -72,7 +72,7 @@ public OnGameModeInit()
 	AddPlayerClass(179,293.7,2031.31,18,270.1425,0,0,0,0,-1,-1);//  Army SF
 	AddPlayerClass(287,-1409.96,496.92,19,270.1425,0,0,0,0,-1,-1);//    Army LV
 	AddPlayerClass(227,1687.82,1449.2,11,90,0,0,0,0,-1,-1);//    Dispatch
-    AddPlayerClass(61,1889.45,-2289,13,0,0,0,0,-1,-1);//    Civil Pilot
+    AddPlayerClass(61,1889.45,-2289,13,90,0,0,0,0,-1,-1);//    Civil Pilot
 
 	if (!CA_Init())
 	    printf("[planesFireFix]: cannot create raycast world. Script may not work well.");
@@ -316,19 +316,18 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	
 	dcmd(s, 1, cmdtext);
 	dcmd(t, 1, cmdtext);
+	
+	dcmd(vt, 2, cmdtext);
+	
+	dcmd(help, 4, cmdtext);
 	return 0;
 }
 
-dcmd_vehicle(playerid, params[])
+dcmd_vehicle(playerid, const params[])
 {
     #if DEBUG_MODE == true
 	    printf("cmd: vehicle[pre](playerid=%d params[0]=%s, params[1]=%s, params[2]=%s, params[3]=%s)", playerid, params[0], params[2], params[2]);
 	#endif
-	if (!AddPlayerMoney(playerid, -50, _serverPlayers))
-	{
-	    sendLocalizedMessage("Недостаточно средств, необходимо $50", "Not enough money. $50 is needed", COLOR_SYSTEM_DISCORD, _serverPlayers);
-	    return 1;
-	}
     if (isnull(params))
     {
         showSelectVehicleDialog(playerid, _serverPlayers);
@@ -341,6 +340,14 @@ dcmd_vehicle(playerid, params[])
             showSelectVehicleDialog(playerid, _serverPlayers);
             return 1;
 		}
+	}
+	if (!AddPlayerMoney(playerid, -20, _serverPlayers))
+	{
+	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+	    	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/vehicle] Not enough money. $20 is needed");
+		else
+		    SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/vehicle] Недостаточно средств! Необходимо $20");
+	    return 1;
 	}
 	if (color1 < 0 || color2 < 0)
 	{
@@ -382,21 +389,24 @@ dcmd_vehicle(playerid, params[])
 	return GivePlayerVehicle(playerid, vehID, x, y, z, facingAngle, color1, color2, -1, 0, _serverPlayers);
 }
 
-dcmd_veh(playerid, params[])
+dcmd_veh(playerid, const params[])
 {
 	return dcmd_vehicle(playerid, params);
 }
 
-dcmd_car(playerid, params[])
+dcmd_car(playerid, const params[])
 {
 	return dcmd_vehicle(playerid, params);
 }
 
-dcmd_heal(playerid, params[])
+dcmd_heal(playerid, const params[])
 {
 	if (!AddPlayerMoney(playerid, -1000, _serverPlayers))
 	{
-	    sendLocalizedMessage("Недостаточно средств, необходимо $1000", "Not enough money. $1000 is needed", COLOR_SYSTEM_DISCORD, _serverPlayers);
+	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+	    	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/heal] Not enough money. $1000 is needed");
+		else
+		    SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/heal] Недостаточно средств! Необходимо $1000");
 	    return 1;
 	}
 	SetPlayerHealth(playerid, 100);
@@ -411,26 +421,37 @@ dcmd_heal(playerid, params[])
 	return 1;
 }
 
-dcmd_hp(playerid, params[])
+dcmd_hp(playerid, const params[])
 {
 	return dcmd_heal(playerid, params);
 }
 
-dcmd_armour(playerid, params[])
+dcmd_armour(playerid, const params[])
 {
 	return dcmd_heal(playerid, params);
 }
 
-dcmd_arm(playerid, params[])
+dcmd_arm(playerid, const params[])
 {
 	return dcmd_armour(playerid, params);
 }
 
-dcmd_repair(playerid, params[])
+dcmd_repair(playerid, const params[])
 {
+	if (IsPlayerInAnyVehicle(playerid))
+	{
+	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+	    	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/repair] You're not in vehicle!");
+		else
+		    SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/repair] Вы не находитесь в транспорте");
+	    return 1;
+	}
     if (!AddPlayerMoney(playerid, -1000, _serverPlayers))
 	{
-	    sendLocalizedMessage("Недостаточно средств! Необходимо $1000", "Not enough money. $1000 is needed", COLOR_SYSTEM_DISCORD, _serverPlayers);
+	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+	    	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/repair] Not enough money. $1000 is needed");
+		else
+		    SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/repair] Недостаточно средств! Необходимо $1000");
 	    return 1;
 	}
     new vehID = GetPlayerVehicleID(playerid);
@@ -446,21 +467,24 @@ dcmd_repair(playerid, params[])
 	return 1;
 }
 
-dcmd_rep(playerid, params[])
+dcmd_rep(playerid, const params[])
 {
 	return dcmd_repair(playerid, params);
 }
 
-dcmd_r(playerid, params[])
+dcmd_r(playerid, const params[])
 {
 	return dcmd_repair(playerid, params);
 }
 
-dcmd_teleport(playerid, params[])
+dcmd_teleport(playerid, const params[])
 {
     if (!AddPlayerMoney(playerid, -100, _serverPlayers))
 	{
-	    sendLocalizedMessage("Недостаточно средств! Необходимо $100", "Not enough money. $1000 is needed", COLOR_SYSTEM_DISCORD, _serverPlayers);
+	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+	    	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/teleport] Not enough money. $100 is needed");
+		else
+		    SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/teleport] Недостаточно средств! Необходимо $100");
 	    return 1;
 	}
 	new Float:x, Float:y, Float:z;
@@ -745,7 +769,7 @@ dcmd_teleport(playerid, params[])
 	return 1;
 }
 
-dcmd_tp(playerid, params[])
+dcmd_tp(playerid, const params[])
 {
 	return dcmd_teleport(playerid, params);
 }
@@ -783,58 +807,89 @@ dcmd_reclass(playerid, const params[])
 dcmd_pm(playerid, const params[])
 {
 	new messageTo;
-	new messageText[148];
-	if (sscanf(params, "ds[148]", messageTo, messageText))
+	new messageText[256];//86
+	if (sscanf(params, "ds[254]", messageTo, messageText))//85
 	{
         if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/pm] Syntax: /pm [id] [message]");
+	    	SendClientMessage(playerid, COLOR_SYSTEM_PM_TO, "[/pm] Syntax: /pm [id] [message]");
 		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/pm]: Синтаксис: /pm [ид] [сообщение]");
+		    SendClientMessage(playerid, COLOR_SYSTEM_PM_TO, "[/pm]: Синтаксис: /pm [ид] [сообщение]");
 		return 1;
 	}
+	printf("695 messageText len = %d", strlen(messageText));
 	if (!IsPlayerConnected(messageTo) || messageTo == playerid)
 	{
 	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/pm]: Wrong player ID or it's yourself");
+	    	SendClientMessage(playerid, COLOR_SYSTEM_PM_TO, "[/pm]: Wrong player ID or it's yourself");
 		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/pm]: Неверный id игрока, либо это ваш собственный id");
+		    SendClientMessage(playerid, COLOR_SYSTEM_PM_TO, "[/pm]: Неверный id игрока, либо это ваш собственный id");
 		return 1;
 	}
-	new messageToSend[74];
-	if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    format(messageToSend, sizeof(messageToSend), "[PM] Private message from %s (%d): %s", _serverPlayers[playerid][name], playerid, messageText);
+	new messageToSend[MAX_PLAYER_NAME + 60];
+	if(_serverPlayers[messageTo][language] == PLAYER_LANGUAGE_ENGLISH)
+	    format(messageToSend, sizeof(messageToSend), "[PM] [from %s (%d)]: %.30s", _serverPlayers[playerid][name], playerid, messageText);
 	else
-	    format(messageToSend, sizeof(messageToSend), "[ЛС] Личное сообщение от %s (%d):  %s", _serverPlayers[playerid][name], playerid, messageText);
- 	SendClientMessage(messageTo, COLOR_SYSTEM_MAIN, messageToSend);
+	    format(messageToSend, sizeof(messageToSend), "[ЛС] [от %s (%d)]:  %.30s", _serverPlayers[playerid][name], playerid, messageText);
+ 	SendClientMessage(messageTo, COLOR_SYSTEM_PM_FROM, messageToSend);
  	
  	if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    format(messageToSend, sizeof(messageToSend), "[PM] Private message to %s (%d): %s", _serverPlayers[messageTo][name], messageTo, messageText);
+	    format(messageToSend, sizeof(messageToSend), "[PM] [for %s (%d)]: %.30s", _serverPlayers[messageTo][name], messageTo, messageText);
 	else
-	    format(messageToSend, sizeof(messageToSend), "[ЛС] Личное сообщение для %s (%d):  %s", _serverPlayers[messageTo][name], messageTo, messageText);
- 	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, messageToSend);
+	    format(messageToSend, sizeof(messageToSend), "[ЛС] [для %s (%d)]:  %.30s", _serverPlayers[messageTo][name], messageTo, messageText);
+ 	SendClientMessage(playerid, COLOR_SYSTEM_PM_TO, messageToSend);
+ 	printf("816 messageText len = %d", strlen(messageText));
+	strdel(messageText, 0, 30);
  	
 	while (strlen(messageText) > 0)
 	{
-	    strdel(messageText, 0, 73);
-	    format(messageToSend, sizeof(messageToSend), "%s", messageText);
-	    SendClientMessage(messageTo, COLOR_SYSTEM_MAIN, messageToSend);
-	    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, messageToSend);
+	    printf("821 messageText len = %d", strlen(messageText));
+	    format(messageToSend, sizeof(messageToSend), "%.54s", messageText);
+	    SendClientMessage(messageTo, COLOR_SYSTEM_PM_FROM, messageToSend);
+	    SendClientMessage(playerid, COLOR_SYSTEM_PM_TO, messageToSend);
+	    strdel(messageText, 0, 54);
 	}
 	return 1;
 }
 
-dcmd_sms(playerid, params[])
+dcmd_sms(playerid, const params[])
 {
 	return dcmd_pm(playerid, params);
 }
 
-dcmd_s(playerid, params[])
+dcmd_s(playerid, const params[])
 {
 	return 1;
 }
 
-dcmd_t(playerid, params[])
+dcmd_t(playerid, const params[])
 {
+	return 1;
+}
+
+dcmd_help(playerid, const params[])
+{
+	return showHelpMessageDialog(playerid, _serverPlayers);
+}
+
+dcmd_vt(playerid, const params[])
+{
+	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "test");
+	new passengers[4];
+	GetVehicleDriverAndPassengers(_serverPlayers[playerid][vehicleID], passengers[0], passengers[1], passengers[2], passengers[3]);
+	new message[256];
+	for (new i = 0; i < 4; i++)
+	    if(passengers[i] == -1)
+	        passengers[i] = MODE_MAX_PLAYERS - 1;
+	format(message, sizeof(message), "Vehicle passengers. Driver:%s (%d), p1:%s (%d), p2:%s (%d), p3:%s (%d)",
+		_serverPlayers[passengers[0]][name],
+		passengers[0],
+		_serverPlayers[passengers[1]][name],
+	    passengers[1],
+	    _serverPlayers[passengers[2]][name],
+	    passengers[2],
+	    _serverPlayers[passengers[3]][name],
+	    passengers[3]);
+	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, message);
 	return 1;
 }
 
@@ -881,7 +936,7 @@ public OnRustlerFiring(playerid, vehicleid)
 {
 	if (!IsPlayerConnected(playerid) || !IsPlayerSpawned(playerid) || !IsPlayerInAnyVehicle(playerid))
 	{
-	    KillFiringTimer(playerid, 0);
+	    KillFiringTimer(playerid);
 	    return;
 	}
 	#if DEBUG_MODE == true
@@ -1101,7 +1156,7 @@ stock AddPlayerFiringTimerRustler(playerid, vehicleid)
 stock AddPlayerFiringTimerHydra(playerid, vehicleid)
 {
 	printf("AddPlayerFiringTimerHydra %s (%d) - (%d)", _serverPlayers[playerid][name], playerid, vehicleid);
-    new FuncName[16] = "OnHydraFiring";
+    //new FuncName[16] = "OnHydraFiring";
     new Float:vehiclePosX, Float:vehiclePosY, Float:vehiclePosZ, Float:finishPosX, Float:finishPosY, Float:finishPosZ;
     new Float:castX, Float:castY, Float:castZ;
     //GetVehiclePos(vehicleid, vehiclePosX, vehiclePosY, vehiclePosZ);
@@ -1126,6 +1181,8 @@ stock AddPlayerFiringTimerHydra(playerid, vehicleid)
 								finishPosY,
 								finishPosZ,
 								_hydraMissiles);
+	if (missile == NOTSET)
+	    printf("Cannot create a missile for %d", playerid);
 	//new missileTimerID = SetTimerEx(FuncName, 100, true, "iii", playerid, vehicleid, missile);
 	AddHydraMyssileTimer(playerid, _hydraMissiles, HYDRA_MISSILE_TIMER_ID);//missileTimerID);
 	print("AddPlayerFiringTimerHydra end");

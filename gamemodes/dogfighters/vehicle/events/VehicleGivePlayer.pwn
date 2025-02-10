@@ -22,9 +22,9 @@ public GivePlayerVehicle(playerid, modelID, Float:x, Float:y, Float:z, Float:fac
 		if(serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
 	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Wrong vehicle ID!");
 		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: РќРµРІРµСЂРЅС‹Р№ ID С‚СЂР°РЅСЃРїРѕСЂС‚Р°!");
+		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Неверный ID транспорта!");
 		printf("GivePlayerVehicle error #26 for player %d", playerid);
-		return 0;
+		return 1;
 	}
 	//serverPlayers[playerid][vehicleID] = result;
 	ServerPlayerSetVehicle(playerid, result, serverPlayers);
@@ -35,14 +35,14 @@ public GivePlayerVehicle(playerid, modelID, Float:x, Float:y, Float:z, Float:fac
 	    if(serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
 	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Unknown error when creating vehicle!");
 		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: РќРµРёР·РІРµСЃС‚РЅР°СЏ РѕС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё С‚СЂР°РЅСЃРїРѕСЂС‚Р°!");
-		destroyPlayerVehicle(playerid);
-		return 0;
+		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Неизвестная ошибка создания транспорта!");
+		destroyPlayerVehicle(playerid, serverPlayers);
+		return 1;
 	}
 	if(serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
 	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Vehicle created!");
 	else
-		SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: РўСЂР°РЅСЃРїРѕСЂС‚ СЃРѕР·РґР°РЅ!");
+		SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Транспорт создан!");
 	printf("Player %s (%d) was given a vehicle ID: %d", serverPlayers[playerid][name], playerid, serverPlayers[playerid][vehicleID]);
 	return 1;
 }

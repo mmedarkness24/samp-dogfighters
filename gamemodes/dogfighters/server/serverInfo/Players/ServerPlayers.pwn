@@ -85,7 +85,7 @@
 	}
 	public ServerPlayerSetKills(playerid, killsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{
-		serverPlayers[playerid][killsValue] = killsValue;
+		serverPlayers[playerid][kills] = killsValue;
 	}
 	public ServerPlayerAddDeath(playerid, deathsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{
@@ -93,7 +93,7 @@
 	}
 	public ServerPlayerSetDeath(playerid, deathsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{
-		serverPlayers[playerid][deathsValue] = deathsValue;
+		serverPlayers[playerid][deaths] = deathsValue;
 	}
 	public ServerPlayerSetPos(playerid, x, y, z, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{

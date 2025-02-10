@@ -13,4 +13,5 @@ public ProcessPlayerSpawn(playerid, score, serverPlayers[MODE_MAX_PLAYERS][serve
 	SetPVarInt(playerid, "HReason", -1);
 	
 	SetPlayerScore(playerid, score);
+	return 1;
 }

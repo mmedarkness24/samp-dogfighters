@@ -1,8 +1,7 @@
 #include "dogfighters\server\serverInfo\serverMain.pwn"
 #include "dogfighters\server\menuDialogs\DialogStyles.pwn"
+#include "dogfighters\server\menuDialogs\DialogID.pwn"
 #include "dogfighters\player\localization\PlayerLanguage.pwn"
-
-#define DIALOG_SELECT_LANGUAGE 1
 
 forward showSelectLanguageDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 

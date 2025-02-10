@@ -367,17 +367,30 @@ stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage, reason, se
     new Float:vehiclehealth = 1000;
     if (!GetVehicleHealth(vehicleid, vehiclehealth))
         return 0;
-    if (vehiclehealth - RUSTLER_DAMAGE_VEHICLES < 150 && vehiclehealth > 0)
+    if (vehiclehealth - RUSTLER_DAMAGE_VEHICLES < 100 && vehiclehealth > 0)
     {
-		printf("VehicleHealth < 150");
+		printf("VehicleHealth < 100");
         new Float:targetX, Float:targetY, Float:targetZ;
         GetVehiclePos(vehicleid, targetX, targetY, targetZ);
-        //SendDeathMessage(damagerid, targetid, RUSTLER_WEAPON_ID);
-        //playerDeathtargetid] = damagerid;
+
+		new driverAndPassengers[4];
+        GetVehicleDriverAndPassengers(vehicleid, driverAndPassengers[0], driverAndPassengers[1], driverAndPassengers[2], driverAndPassengers[3]);
+		driverAndPassengers[0] = driverAndPassengers[0] != NOTSET && driverAndPassengers[0] || targetid;
+		new driverHitID = GetPVarInt(targetid, "Hit");
+		driverHitID = driverHitID > 0 && driverHitID || 14;
+		ForcePlayerDeath(driverAndPassengers[0], driverHitID, GetPVarInt(driverAndPassengers[0], "HReason"), serverPlayers);
+		for (new i = 1; i < 4; i++)
+		{
+			if (driverAndPassengers[i] == NOTSET || !IsPlayerConnected(driverAndPassengers[i]) /*|| driverAndPassengers[i] == killerid*/)
+				continue;
+			printf("Player %s (%d) was in vehicle and will be killed by %s (%d) now", serverPlayers[i][name], i, serverPlayers[damagerid][name], damagerid);
+			ForcePlayerDeath(driverAndPassengers[i], damagerid, 14, serverPlayers);
+		}
+
         CreateExplosion(targetX, targetY, targetZ, 2, 3);
         //SetVehicleHealth(vehicleid, 0);
 		//destroyPlayerVehicle(targetid, serverPlayers);
-        ForcePlayerDeath(targetid, damagerid, reason, serverPlayers);
+        //ForcePlayerDeath(targetid, damagerid, reason, serverPlayers);
         //SetPlayerHealth(targetid, 0);
 		SetPVarInt(targetid, "Hit", damagerid);
 		SetPVarInt(targetid, "HReason", reason);

@@ -11,10 +11,12 @@ public GetVehicleDriverAndPassengers(vehicleid, &driverid, &passenger1id, &passe
 	passenger1id = NOTSET;
 	passenger2id = NOTSET;
 	passenger3id = NOTSET;
+	//printf("Trying to find passengers of vehicle %d", vehicleid);
 	for (new i = 0; i < MODE_MAX_PLAYERS; i++)
 	{
 		if (IsPlayerInVehicle(i, vehicleid))
 		{
+			//printf("some vehicle player found: %d", i);
 			switch (GetPlayerVehicleSeat(i))
 			{
 				case 0:
