@@ -1,3 +1,4 @@
+.vscode
 .ssh
 npcmodes
 pawno
@@ -10,3 +11,4 @@ server.log
 server_log.txt
 samp-license.txt
 crashinfo.txt
+server.cfg

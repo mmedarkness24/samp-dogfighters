@@ -24,7 +24,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #include <colandreas>   //  For collisions
 #include <Pawn.RakNet>  //  For bulletSync packets
-#include "../gamemodes/dogfighters/player/events/PlayerDeath.pwn"
+//#include "../gamemodes/dogfighters/player/events/PlayerDeath.pwn"
 
 #define FILTERSCRIPT    //  For Pawn.RakNet :D
 
@@ -58,7 +58,7 @@ forward OnRustlerFiring(playerid, vehicleid);
 forward GetNearestPlayer(Float:x, Float:y, Float:z, Float:radius, playerid);
 
 new firingTimer[MAX_PLAYERS];
-new playerDeath[MAX_PLAYERS];
+//new playerDeath[MAX_PLAYERS];
 
 
 public OnFilterScriptInit()
@@ -71,7 +71,7 @@ public OnFilterScriptInit()
 	for (new i = 0; i < MAX_PLAYERS; i++)
 	{
 	    firingTimer[i] = NOTSET;
-	    playerDeath[i] = NOTSET;
+	    //playerDeathi] = NOTSET;
 	}
 	if (!CA_Init())
 	    printf("[rustlerFireFix]: cannot create raycast world. Script may not work well.");
@@ -227,16 +227,16 @@ public OnRustlerFiring(playerid, vehicleid)
     #endif
 }
 
-public OnPlayerDeath(playerid, killerid, reason)
+/*public OnPlayerDeath(playerid, killerid, reason)
 {
-	if (playerDeath[playerid] > NOTSET)
+	if (//playerDeathplayerid] > NOTSET)
 	{
-        ProcessPlayerDeath(playerDeath[playerid], playerid, RUSTLER_WEAPON_ID);
-        playerDeath[playerid] = NOTSET;
+        ProcessPlayerDeath(//playerDeathplayerid], playerid, RUSTLER_WEAPON_ID);
+        //playerDeathplayerid] = NOTSET;
         return 0;
 	}
 	return 1;
-}
+}*/
 
 #if BULLET_SYNC_ENABLE == true
 stock SendBulletSync(playerid, victimid, data[PR_BulletSync])
@@ -278,16 +278,17 @@ stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage)
         new Float:targetX, Float:targetY, Float:targetZ;
         GetVehiclePos(vehicleid, targetX, targetY, targetZ);
         //SendDeathMessage(damagerid, targetid, RUSTLER_WEAPON_ID);
-        playerDeath[targetid] = damagerid;
+        //playerDeathtargetid] = damagerid;
         CreateExplosion(targetX, targetY, targetZ, 2, 3);
         SetVehicleHealth(vehicleid, 0);
-        ForcePlayerDeath(targetid, damagerid, RUSTLER_WEAPON_ID);
-        //SetPlayerHealth(targetid, 0);
+        //ForcePlayerDeath(targetid, damagerid, RUSTLER_WEAPON_ID);
+        SetPlayerHealth(targetid, 0);
 	}
 	else
 	{
 	    SetVehicleHealth(vehicleid, vehiclehealth - RUSTLER_DAMAGE_VEHICLES);
 	    SetPVarInt(targetid, "Hit", damagerid);
+	    SetPVarInt(targetid, "HReason", RUSTLER_WEAPON_ID);
  	}
 
     return 1;
@@ -310,11 +311,12 @@ stock GivePlayerDamage(playerid, damagerid, Float:damage)  // Can rewrite with y
 	if (health - damage <= 0)   //  Do "player kill" logic
 	{
 	    //SendDeathMessage(damagerid, playerid, RUSTLER_WEAPON_ID);
-	    playerDeath[playerid] = damagerid;
-	    ForcePlayerDeath(playerid, damagerid, RUSTLER_WEAPON_ID);
+	    ////playerDeathplayerid] = damagerid;
+	    //ForcePlayerDeath(playerid, damagerid, RUSTLER_WEAPON_ID);
 	}
 	SetPlayerHealth(playerid, health - damage);
 	SetPVarInt(playerid, "Hit", damagerid);
+	SetPVarInt(playerid, "HReason", RUSTLER_WEAPON_ID);
 	#if DEBUG_MODE == true
 	printf("Damage has given to %d", playerid);
 	#endif

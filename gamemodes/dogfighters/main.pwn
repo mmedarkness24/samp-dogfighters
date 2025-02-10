@@ -3,4 +3,5 @@
 	#include "dogfighters/player/playerMain.pwn"
 	#include "dogfighters/server/serverMain.pwn"
 	#include "dogfighters/vehicle/vehicleMain.pwn"
+	//#include "dogfighters/math/mathMain.pwn"
 #endif
