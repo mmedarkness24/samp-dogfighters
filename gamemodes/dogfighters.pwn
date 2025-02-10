@@ -438,7 +438,7 @@ dcmd_arm(playerid, const params[])
 
 dcmd_repair(playerid, const params[])
 {
-	if (IsPlayerInAnyVehicle(playerid))
+	if (!IsPlayerInAnyVehicle(playerid))
 	{
 	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
 	    	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/repair] You're not in vehicle!");
