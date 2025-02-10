@@ -1,13 +1,6 @@
 #include "dogfighters\server\serverInfo\serverMain.pwn"
 #include "dogfighters\server\menuDialogs\DialogStyles.pwn"
-
-#define DIALOG_SELECT_VEHICLE 2
-#define DIALOG_SELECT_PLANE 3
-#define DIALOG_SELECT_HELI 4
-#define DIALOG_SELECT_CAR 5
-#define DIALOG_SELECT_BIKE 6
-#define DIALOG_SELECT_BOAT 7
-#define DIALOG_SELECT_MILITARY 8
+#include "dogfighters\server\menuDialogs\DialogID.pwn"
 
 forward showSelectVehicleDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 forward showSelectMilitaryDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);

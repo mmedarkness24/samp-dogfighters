@@ -190,12 +190,14 @@ public HydraCheckMissileStatus(missileIndex, hydraMissiles[MODE_MAX_PLAYERS * MI
 		< (HYDRA_SEARCH_MAX_RADIUS + 1) || hydraMissiles[missileIndex][hydraMissileIteration] > HYDRA_MAXIMUM_ITERATIONS)
 		{
 			DestroyHydraMissile(missileIndex, hydraMissiles);
+			return 1;
 			/*CreateExplosion(
 							hydraMissiles[missileIndex][hydraMissileFinalPositionX], 
 							hydraMissiles[missileIndex][hydraMissileFinalPositionY], 
 							hydraMissiles[missileIndex][hydraMissileFinalPositionZ], 
 							HYDRA_EXPLOSION_TYPE);*/
 		}
+	return 0;
 }
 
 #endif

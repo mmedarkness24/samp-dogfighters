@@ -8,7 +8,7 @@
 	
 	public sendLocalizedMessage(message_ru[], message_en[], color, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{
-		new Message[145];
+		// new Message[145];
 		for (new i = 0; i < MODE_MAX_PLAYERS; i++)
 		{
 			if (!IsPlayerConnected(i))
