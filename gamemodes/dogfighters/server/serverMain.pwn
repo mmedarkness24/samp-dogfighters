@@ -6,5 +6,6 @@
 	#include "dogfighters/server/serverInfo/serverMain.pwn"
 	#include "dogfighters/server/events/UpdatePlayers.pwn"
 	#include "dogfighters/server/events/UpdateMissiles.pwn"
+	#include "dogfighters/server/commands/commandsMain.pwn"
 	//#include "dogfighters/server/globals/ServerGlobalVariables.pwn"
 #endif
