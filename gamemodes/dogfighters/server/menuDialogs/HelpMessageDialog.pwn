@@ -29,7 +29,7 @@ public showHelpMessageDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPla
                         /tp gate - teleport to Golden Gate Bridge airspace\n\
                         /tp beach - teleport to Los Santos Beach airspace\n\
                         /tp chill - teleport to chiliad mountain",
-                        "Ok");
+                        "Ok", "");
     else
         ShowPlayerDialog(playerid, DIALOG_HELP_MESSAGE, DIALOG_STYLE_MSGBOX, 
                         "Команды и информация о сервере", 
@@ -47,7 +47,7 @@ public showHelpMessageDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPla
                         /tp gate - телепорт в полётную зону \"Мост Золотые Ворота\"\n\
                         /tp beach - телепорт в полётную зону \"Пляж ЛС\"\n\
                         /tp chill - телепорт в полётную зону \"Гора Чилиад\"",
-                        "Ok");
+                        "Ok", "");
     return 1;
 }
 #endif
