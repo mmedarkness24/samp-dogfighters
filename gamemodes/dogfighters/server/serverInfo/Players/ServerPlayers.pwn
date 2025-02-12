@@ -34,6 +34,7 @@
 	forward ServerPlayerSetKills(playerid, killsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerAddDeath(playerid, deathsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetDeath(playerid, deathsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+	forward ServerPlayerSetPvpID(playerid, targetid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetPos(playerid, Float:x, Float:y, Float:z, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerAddAnticheat(playerid, anticheatValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetAnticheat(playerid, anticheatValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
@@ -108,6 +109,10 @@
 	public ServerPlayerSetDeath(playerid, deathsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{
 		serverPlayers[playerid][deaths] = deathsValue;
+	}
+	public ServerPlayerSetPvpID(playerid, targetid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+	{
+		serverPlayers[playerid][pvpid] = targetid;
 	}
 	public ServerPlayerSetPos(playerid, Float:x, Float:y, Float:z, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{

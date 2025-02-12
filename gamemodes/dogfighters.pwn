@@ -307,6 +307,11 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	dcmd(s, 1, cmdtext);
 	dcmd(t, 1, cmdtext);
 	
+	dcmd(pvp, 3, cmdtext);
+	dcmd(duel, 4, cmdtext);
+	dcmd(y, 1, cmdtext);
+	dcmd(n, 1, cmdtext);
+	
 	dcmd(vt, 2, cmdtext);
 	
 	dcmd(help, 4, cmdtext);
@@ -419,6 +424,26 @@ dcmd_s(playerid, const params[])
 dcmd_t(playerid, const params[])
 {
 	return CommandTeleportPosition(playerid, params, _serverPlayers);
+}
+
+dcmd_pvp(playerid, const params[])
+{
+	return CommandPvp(playerid, params, _serverPlayers);
+}
+
+dcmd_duel(playerid, const params[])
+{
+	return dcmd_pvp(playerid, params);
+}
+
+dcmd_y(playerid, const params[])
+{
+	return CommandAccept(playerid, params, _serverPlayers);
+}
+
+dcmd_n(playerid, const params[])
+{
+	return CommandDecline(playerid, params, _serverPlayers);
 }
 
 dcmd_help(playerid, const params[])
