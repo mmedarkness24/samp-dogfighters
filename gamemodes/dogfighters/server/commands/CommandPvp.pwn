@@ -1,3 +1,4 @@
+#include "dogfighters\server\menuDialogs\DialogDuelInfo.pwn"
 #include "dogfighters\server\serverInfo\serverMain.pwn"
 #include "dogfighters\player\playerMain.pwn"
 
@@ -32,5 +33,6 @@ public CommandPvp(playerid, const params[], serverPlayers[MODE_MAX_PLAYERS][serv
     }
     ServerPlayerSetPvpID(playerid, targetid, serverPlayers);
     PlayerRequestDuel(targetid, playerid, serverPlayers);
+    showDuelHelpDialog(playerid, serverPlayers);
     return 1;
 }

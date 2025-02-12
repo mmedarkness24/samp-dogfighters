@@ -255,12 +255,17 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 public OnPlayerDeath(playerid, killerid, reason)
 {
-	printf("OnPlayerDeath: %s (%d) -> %s (%d) [%d];", _serverPlayers[killerid][name], killerid, _serverPlayers[playerid][name], playerid, reason);
+	//printf("OnPlayerDeath: %s (%d) -> %s (%d) [%d];", _serverPlayers[killerid][name], killerid, _serverPlayers[playerid][name], playerid, reason);
 	return ProcessPlayerDeath(playerid,	killerid, reason, _serverPlayers);
 }
 
 public OnPlayerSpawn(playerid)
 {
+	if (ServerPlayerIsInPvp(playerid, _serverPlayers))
+	{
+		PlayerSpawnDuel(playerid, _serverPlayers);
+		return 1;
+	}
 	return ProcessPlayerSpawn(playerid, _serverPlayers[playerid][money], _serverPlayers);
 }
 
@@ -277,9 +282,27 @@ public OnPlayerRequestClass(playerid, classid)
 
 public OnPlayerCommandText(playerid, cmdtext[])
 {
+    dcmd(kill, 4, cmdtext);
+    
+    dcmd(language,8,cmdtext);
+	dcmd(lang,4,cmdtext);
+	dcmd(setlang,7,cmdtext);
+	
+	dcmd(pm, 2, cmdtext);
+	dcmd(sms, 3, cmdtext);
+	
 	dcmd(vehicle,7,cmdtext);
 	dcmd(veh,3,cmdtext);
 	dcmd(car,3,cmdtext);
+
+	if (ServerPlayerIsInPvp(playerid, _serverPlayers))
+	{
+	    if (_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "This commands is unavaliable in pvp mode");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "Эти команды недоступны в дуэли");
+		return 1;
+	}
 	
 	dcmd(heal,4,cmdtext);
 	dcmd(hp,2,cmdtext);
@@ -293,16 +316,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	dcmd(teleport,8,cmdtext);
 	dcmd(tp,2,cmdtext);
 	
-	dcmd(language,8,cmdtext);
-	dcmd(lang,4,cmdtext);
-	dcmd(setlang,7,cmdtext);
-	
-	dcmd(kill, 4, cmdtext);
-	
 	dcmd(reclass, 7, cmdtext);
-	
-	dcmd(pm, 2, cmdtext);
-	dcmd(sms, 3, cmdtext);
 	
 	dcmd(s, 1, cmdtext);
 	dcmd(t, 1, cmdtext);
@@ -478,37 +492,11 @@ public setPlayerConnectionStatus(playerid, bool:isConnectedStatus)
 	//_serverPlayers[playerid][isConnected] = isConnectedStatus;
 	if (isConnectedStatus)
 	{
-	    new playerName[MAX_PLAYER_NAME + 1];
-		new result = GetPlayerName(playerid, playerName, sizeof(playerName));
-        #if DEBUG_MODE == true
-		if (!result)
-		{
-		    printf("Cannot get player's name: %s (%d)", playerName, playerid);
-		}
-		#endif
-		//_serverPlayers[playerid][name] = playerName;
-		ServerPlayerSetName(playerid, playerName, _serverPlayers);
-		
-		new messageEnglish[MAX_PLAYER_NAME + 45];
-		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been connected to server!", _serverPlayers[playerid][name], playerid);
-
-		new messageRussian[MAX_PLAYER_NAME + 36];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] подключился к серверу", _serverPlayers[playerid][name], playerid);
-		
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
+	    PlayerConnect(playerid, _serverPlayers);
 	}
 	else
 	{
-	    destroyPlayerVehicle(playerid, _serverPlayers);
-     	//format(serverPlayers[playerid][name[0]], sizeof(serverPlayers[playerid][name[0]]), "");
-     	
-     	new messageEnglish[MAX_PLAYER_NAME + 51];
-		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been disconnected from server=(", _serverPlayers[playerid][name], playerid);
-
-		new messageRussian[MAX_PLAYER_NAME + 38];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] отключился от сервера=(", _serverPlayers[playerid][name], playerid);
-
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
+ 		PlayerDisconnect(playerid, _serverPlayers);
 	}
 }
 

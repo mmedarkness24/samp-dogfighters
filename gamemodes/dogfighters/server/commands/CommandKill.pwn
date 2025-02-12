@@ -13,4 +13,5 @@ public CommandKill(playerid, const params[], serverPlayers[MODE_MAX_PLAYERS][ser
     sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, serverPlayers);
 
     SetPlayerHealth(playerid, 0);
+    return 1;
 }
