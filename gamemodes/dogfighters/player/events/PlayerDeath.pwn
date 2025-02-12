@@ -1,8 +1,9 @@
 #if !defined EVENTS_PLAYER_DEATH
 #define EVENTS_PLAYER_DEATH
-#include "dogfighters\player\events\PlayerKill.pwn"
+//#include "dogfighters\player\events\PlayerKill.pwn"
+#include "dogfighters\player\playerMain.pwn"
 #include "dogfighters\server\serverInfo\serverMain.pwn"
-#include "dogfighters\player\localization\PlayerLanguage.pwn"
+//#include "dogfighters\player\localization\PlayerLanguage.pwn"
 
 forward ForcePlayerDeath(playerid, killerid, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 forward ProcessPlayerDeath(playerid, killerid, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
@@ -11,6 +12,13 @@ forward AddPlayerDeaths(playerid, amount, serverPlayers[MODE_MAX_PLAYERS][server
 public ForcePlayerDeath(playerid, killerid, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
 	printf("ForcePlayerDeath: killed: %s (%d), by %s %d", serverPlayers[playerid][name], playerid, serverPlayers[killerid][name], killerid);
+	/*if (ServerPlayerIsInPvp(playerid, serverPlayers))
+	{
+		#if DEBUG_MODE == true
+		printf("Player %d is in pvp, %d receive 1 score point", playerid, serverPlayers[playerid][pvpid]);
+		#endif
+		PlayerIncreaseDuelScore(serverPlayers[playerid][pvpid], 1, serverPlayers);
+	}*/
 	SetPlayerHealth(playerid, 0);
 	new lastHit = GetPVarInt(playerid, "Hit");
 	if (killerid == playerid && lastHit != NOTSET)
@@ -25,6 +33,13 @@ public ForcePlayerDeath(playerid, killerid, reason, serverPlayers[MODE_MAX_PLAYE
 public ProcessPlayerDeath(playerid,	killerid, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
 	printf("ProcessPlayerDeath[pre]: pid %d kil %d reason: %d", playerid, killerid, reason);
+	if (ServerPlayerIsInPvp(playerid, serverPlayers))
+	{
+		#if DEBUG_MODE == true
+		printf("Player %d is in pvp, %d receive 1 score point", playerid, serverPlayers[playerid][pvpid]);
+		#endif
+		PlayerIncreaseDuelScore(serverPlayers[playerid][pvpid], 1, serverPlayers);
+	}
 	if (GetPVarInt(playerid, "Death") == 1)
 		return 0;
 	SetPVarInt(playerid, "Death", 1);

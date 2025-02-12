@@ -16,6 +16,8 @@
 		kills,
 		deaths,
 		pvpid,
+		pvpscore,
+		PlayerText:pvptextdraw,
 		Float:positionX,
 		Float:positionY,
 		Float:positionZ,
@@ -34,6 +36,11 @@
 	forward ServerPlayerSetKills(playerid, killsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerAddDeath(playerid, deathsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetDeath(playerid, deathsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+	forward ServerPlayerSetPvpID(playerid, targetid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+	forward ServerPlayerIsInPvp(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+	forward ServerPlayerSetPvpScore(playerid, scoreValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+	forward ServerPlayerAddPvpScore(playerid, scoreValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+	forward ServerPlayerSetPvpTextdraw(playerid, PlayerText:textdraw, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetPos(playerid, Float:x, Float:y, Float:z, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerAddAnticheat(playerid, anticheatValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetAnticheat(playerid, anticheatValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
@@ -49,6 +56,10 @@
 		ServerPlayerSetDeath(playerid, 0, serverPlayers);
 		ServerPlayerSetAnticheat(playerid, 0, serverPlayers);
 		ServerPlayerSetPos(playerid, NOTSET, NOTSET, NOTSET, serverPlayers);
+
+		ServerPlayerSetPvpID(playerid, NOTSET, serverPlayers);
+		ServerPlayerSetPvpScore(playerid, NOTSET, serverPlayers);
+		ServerPlayerSetPvpTextdraw(playerid, PlayerText:NOTSET, serverPlayers);
 
 		#if DEBUG_MODE == true
 		printf("Player %s (%d) reset", serverPlayers[playerid][name], playerid);
@@ -108,6 +119,29 @@
 	public ServerPlayerSetDeath(playerid, deathsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{
 		serverPlayers[playerid][deaths] = deathsValue;
+	}
+	public ServerPlayerSetPvpID(playerid, targetid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+	{
+		serverPlayers[playerid][pvpid] = targetid;
+	}
+	public ServerPlayerIsInPvp(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+	{
+		if (serverPlayers[playerid][pvpid] < 0 || serverPlayers[playerid][pvpid] >= MODE_MAX_PLAYERS)
+			return 0;
+		else
+			return 1;
+	}
+	public ServerPlayerSetPvpScore(playerid, scoreValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+	{
+		serverPlayers[playerid][pvpscore] = scoreValue;
+	}
+	public ServerPlayerAddPvpScore(playerid, scoreValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+	{
+		serverPlayers[playerid][pvpscore] += scoreValue;
+	}
+	public ServerPlayerSetPvpTextdraw(playerid, PlayerText:textdraw, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+	{
+		serverPlayers[playerid][pvptextdraw] = textdraw;
 	}
 	public ServerPlayerSetPos(playerid, Float:x, Float:y, Float:z, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{

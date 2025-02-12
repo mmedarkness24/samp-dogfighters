@@ -11,5 +11,6 @@
 #define DIALOG_SELECT_MILITARY 8
 
 #define DIALOG_HELP_MESSAGE 21
+#define DIALOG_HELP_DUEL 22
 
 #endif

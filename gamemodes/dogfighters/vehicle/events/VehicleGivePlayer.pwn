@@ -26,6 +26,8 @@ public GivePlayerVehicle(playerid, modelID, Float:x, Float:y, Float:z, Float:fac
 		printf("GivePlayerVehicle error #26 for player %d", playerid);
 		return 1;
 	}
+	new virtualWorld = GetPlayerVirtualWorld(playerid);
+	SetVehicleVirtualWorld(result, virtualWorld);
 	//serverPlayers[playerid][vehicleID] = result;
 	ServerPlayerSetVehicle(playerid, result, serverPlayers);
 	printf("Putting player %s (%d) into his vehicle: %d", serverPlayers[playerid][name], playerid, serverPlayers[playerid][vehicleID]);
