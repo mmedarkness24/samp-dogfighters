@@ -8,8 +8,6 @@
 
 	enum serverPlayer
 	{
-		//bool:isConnected = false,
-		//bool:isServerSideDamageSync = false,
 		flood,
 		language,
 		name[SERVER_PLAYERS_MAX_NAME],
@@ -17,11 +15,13 @@
 		vehicleID,
 		kills,
 		deaths,
+		pvpid,
 		Float:positionX,
 		Float:positionY,
 		Float:positionZ,
 		anticheat
 	}
+	forward ServerPlayerReset(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayersReset(serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerAddFlood(playerid, floodValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetFlood(playerid, floodValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
@@ -34,18 +34,32 @@
 	forward ServerPlayerSetKills(playerid, killsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerAddDeath(playerid, deathsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetDeath(playerid, deathsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
-	forward ServerPlayerSetPos(playerid, x, y, z, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+	forward ServerPlayerSetPos(playerid, Float:x, Float:y, Float:z, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerAddAnticheat(playerid, anticheatValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetAnticheat(playerid, anticheatValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	
+	//Resets all player's variables to default (DO NOT RESET PLAYER'S VEHICLE ID)
+	public ServerPlayerReset(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+	{
+		ServerPlayerResetVehicle(playerid, serverPlayers);
+		ServerPlayerSetName(playerid, "\%ERR\%NOTSET", serverPlayers);
+		ServerPlayerSetFlood(playerid, 0, serverPlayers);
+		ServerPlayerAddMoney(playerid, -serverPlayers[playerid][money], serverPlayers);
+		ServerPlayerSetKills(playerid, 0, serverPlayers);
+		ServerPlayerSetDeath(playerid, 0, serverPlayers);
+		ServerPlayerSetAnticheat(playerid, 0, serverPlayers);
+		ServerPlayerSetPos(playerid, NOTSET, NOTSET, NOTSET, serverPlayers);
+
+		#if DEBUG_MODE == true
+		printf("Player %s (%d) reset", serverPlayers[playerid][name], playerid);
+		#endif
+	}
 	public ServerPlayersReset(serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{
 		print("Server Players Reset:");
 		for (new i = 0; i < MODE_MAX_PLAYERS; i++)
 		{
-			ServerPlayerResetVehicle(i, serverPlayers);
-			ServerPlayerSetName(i, "\%ERR\%NOTSET", serverPlayers);
-			printf("Player %s (%d) - vehicle: %d", serverPlayers[i][name], i, serverPlayers[i][vehicleID]);
+			ServerPlayerReset(i, serverPlayers);
 		}
 	}
 	public ServerPlayerAddFlood(playerid, floodValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
@@ -95,7 +109,7 @@
 	{
 		serverPlayers[playerid][deaths] = deathsValue;
 	}
-	public ServerPlayerSetPos(playerid, x, y, z, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+	public ServerPlayerSetPos(playerid, Float:x, Float:y, Float:z, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{
 		serverPlayers[playerid][positionX] = x;
 		serverPlayers[playerid][positionY] = y;
