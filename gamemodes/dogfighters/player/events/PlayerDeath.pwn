@@ -40,9 +40,10 @@ public ProcessPlayerDeath(playerid,	killerid, reason, serverPlayers[MODE_MAX_PLA
 		#endif
 		PlayerIncreaseDuelScore(serverPlayers[playerid][pvpid], 1, serverPlayers);
 	}
-	if (ServerPlayerIsFireFix(playerid, serverPlayers))
+	if (!ServerPlayerIsFireFix(playerid, serverPlayers))
 	{
-	    SendDeathMessage(killerid, playerid, reason);
+	    //SendDeathMessage(killerid, playerid, reason);
+		SetPVarInt(playerid, "Death", 1);
 	    return 1;
 	}
 	if (GetPVarInt(playerid, "Death") == 1)

@@ -88,6 +88,8 @@ public OnUpdateLong()
 public OnGameModeExit()
 {
 	print("Unloading Dogfighters Gamemode (exit)");
+	ResetHydraMissiles(_hydraMissiles);
+	ServerPlayersReset(_serverPlayers);
 	return 1;
 }
 
