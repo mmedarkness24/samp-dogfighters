@@ -6,9 +6,9 @@ plugins
 *.exe
 *.zip
 *.rar
+*.cfg
 temp.txt
 server.log
 server_log.txt
 samp-license.txt
 crashinfo.txt
-server.cfg

@@ -8,18 +8,8 @@
 
 #include "dogfighters/main.pwn"
 
-#define DEBUG_MODE true
-
-#define VEHICLES_MINIMAL_MODEL_ID 400
-#define VEHICLES_MAXIMAL_MODEL_ID 605
-#define VEHICLES_FORBIDDEN_MODELS_CHECK vehID == 435 || vehID == 441 || vehID == 450 || vehID == 464 || vehID == 465 || vehID == 501 || vehID == 537 || vehID == 538 || vehID == 564 || vehID == 569 || vehID == 570 || vehID == 590 || vehID == 594
-
 #if !defined dcmd
 	#define dcmd(%1,%2,%3) if(!strcmp((%3)[1], #%1, true, (%2)) && ((((%3)[(%2) + 1] == '\0') && (dcmd_%1(playerid, " "))) || (((%3)[(%2) + 1] == ' ') && (dcmd_%1(playerid, (%3)[(%2) + 2]))))) return 1
-#endif
-
-#if !defined isnull
-    #define isnull(%1) ((!(%1[0])) || (((%1[0]) == '\1') && (!(%1[1]))))
 #endif
 
 forward setPlayerConnectionStatus(playerid, bool:isConnectedStatus);
@@ -98,6 +88,8 @@ public OnUpdateLong()
 public OnGameModeExit()
 {
 	print("Unloading Dogfighters Gamemode (exit)");
+	ResetHydraMissiles(_hydraMissiles);
+	ServerPlayersReset(_serverPlayers);
 	return 1;
 }
 
@@ -117,6 +109,8 @@ public OnPlayerDisconnect(playerid)
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
+	if (!ServerPlayerIsFireFix(playerid, _serverPlayers))
+	    return 0;
     if ((newkeys & KEY_ACTION) && !(oldkeys & KEY_ACTION) && IsPlayerInAnyVehicle(playerid))
     {
         new vehicleid = GetPlayerVehicleID(playerid);
@@ -265,12 +259,17 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 public OnPlayerDeath(playerid, killerid, reason)
 {
-	printf("OnPlayerDeath: %s (%d) -> %s (%d) [%d];", _serverPlayers[killerid][name], killerid, _serverPlayers[playerid][name], playerid, reason);
+	//printf("OnPlayerDeath: %s (%d) -> %s (%d) [%d];", _serverPlayers[killerid][name], killerid, _serverPlayers[playerid][name], playerid, reason);
 	return ProcessPlayerDeath(playerid,	killerid, reason, _serverPlayers);
 }
 
 public OnPlayerSpawn(playerid)
 {
+	if (ServerPlayerIsInPvp(playerid, _serverPlayers))
+	{
+		PlayerSpawnDuel(playerid, _serverPlayers);
+		return 1;
+	}
 	return ProcessPlayerSpawn(playerid, _serverPlayers[playerid][money], _serverPlayers);
 }
 
@@ -287,9 +286,29 @@ public OnPlayerRequestClass(playerid, classid)
 
 public OnPlayerCommandText(playerid, cmdtext[])
 {
+    dcmd(kill, 4, cmdtext);
+    
+    dcmd(language,8,cmdtext);
+	dcmd(lang,4,cmdtext);
+	dcmd(setlang,7,cmdtext);
+	
+	dcmd(pm, 2, cmdtext);
+	dcmd(sms, 3, cmdtext);
+	
 	dcmd(vehicle,7,cmdtext);
 	dcmd(veh,3,cmdtext);
 	dcmd(car,3,cmdtext);
+	
+	dcmd(firefix, 7, cmdtext);
+
+	if (ServerPlayerIsInPvp(playerid, _serverPlayers))
+	{
+	    if (_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "This commands is unavaliable in pvp mode");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "Эти команды недоступны в дуэли");
+		return 1;
+	}
 	
 	dcmd(heal,4,cmdtext);
 	dcmd(hp,2,cmdtext);
@@ -303,19 +322,15 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	dcmd(teleport,8,cmdtext);
 	dcmd(tp,2,cmdtext);
 	
-	dcmd(language,8,cmdtext);
-	dcmd(lang,4,cmdtext);
-	dcmd(setlang,7,cmdtext);
-	
-	dcmd(kill, 4, cmdtext);
-	
 	dcmd(reclass, 7, cmdtext);
-	
-	dcmd(pm, 2, cmdtext);
-	dcmd(sms, 3, cmdtext);
 	
 	dcmd(s, 1, cmdtext);
 	dcmd(t, 1, cmdtext);
+	
+	dcmd(pvp, 3, cmdtext);
+	dcmd(duel, 4, cmdtext);
+	dcmd(y, 1, cmdtext);
+	dcmd(n, 1, cmdtext);
 	
 	dcmd(vt, 2, cmdtext);
 	
@@ -328,65 +343,7 @@ dcmd_vehicle(playerid, const params[])
     #if DEBUG_MODE == true
 	    printf("cmd: vehicle[pre](playerid=%d params[0]=%s, params[1]=%s, params[2]=%s, params[3]=%s)", playerid, params[0], params[2], params[2]);
 	#endif
-    if (isnull(params))
-    {
-        showSelectVehicleDialog(playerid, _serverPlayers);
-    }
-	new vehID = -1, color1 = -1, color2 = -1;
-	if (sscanf(params, "ddd", vehID, color1, color2))
-	{
-        if (vehID < 0)
-        {
-            showSelectVehicleDialog(playerid, _serverPlayers);
-            return 1;
-		}
-	}
-	if (!AddPlayerMoney(playerid, -20, _serverPlayers))
-	{
-	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/vehicle] Not enough money. $20 is needed");
-		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/vehicle] Недостаточно средств! Необходимо $20");
-	    return 1;
-	}
-	if (color1 < 0 || color2 < 0)
-	{
-	    color1 = random(255);
-	    color2 = random(255);
-	}
-	#if DEBUG_MODE == true
-	    printf("cmd: vehicle(%d, params=%s, vehID=%d, color1=%d, color2=%d)", playerid, params, vehID, color1, color2);
-	#endif
-	if (vehID < 400 || vehID > 605)
-	{
-	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Wrong vehicle ID!");
-		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Неверный ID транспорта!");
-		return 1;
-	}
-	if (VEHICLES_FORBIDDEN_MODELS_CHECK)
-	{
-	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Wrong vehicle ID!");
-		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Неверный ID транспорта");
-		return 1;
-	}
-		    
-	new messageEnglish[MAX_PLAYER_NAME + 46];
-	format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has taken a new vehicle: %d", _serverPlayers[playerid][name], playerid, vehID);
-	
-	new messageRussian[MAX_PLAYER_NAME + 46];
-	format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] взял новый транспорт: %d", _serverPlayers[playerid][name], playerid, vehID);
-	sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
-    //SendClientMessageToAll(COLOR_SYSTEM_DISCORD, message);
-	//return 1;
-	
-	new Float:x, Float:y, Float:z, Float:facingAngle;
-	GetPlayerPos(playerid, x, y, z);
-	GetPlayerFacingAngle(playerid, facingAngle);
-	return GivePlayerVehicle(playerid, vehID, x, y, z, facingAngle, color1, color2, -1, 0, _serverPlayers);
+    return CommandGivePlayerVehicle(playerid, params, _serverPlayers);
 }
 
 dcmd_veh(playerid, const params[])
@@ -399,26 +356,14 @@ dcmd_car(playerid, const params[])
 	return dcmd_vehicle(playerid, params);
 }
 
+dcmd_firefix(playerid, const params[])
+{
+	return CommandFireFix(playerid, params, _serverPlayers);
+}
+
 dcmd_heal(playerid, const params[])
 {
-	if (!AddPlayerMoney(playerid, -1000, _serverPlayers))
-	{
-	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/heal] Not enough money. $1000 is needed");
-		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/heal] Недостаточно средств! Необходимо $1000");
-	    return 1;
-	}
-	SetPlayerHealth(playerid, 100);
-	SetPlayerArmour(playerid, 100);
-	
-	new messageEnglish[MAX_PLAYER_NAME + 33];
-	format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been healed", _serverPlayers[playerid][name], playerid);
-
-	new messageRussian[MAX_PLAYER_NAME + 33];
-	format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] исцелился", _serverPlayers[playerid][name], playerid);
-	sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
-	return 1;
+	return CommandHeal(playerid, params, _serverPlayers);
 }
 
 dcmd_hp(playerid, const params[])
@@ -433,38 +378,12 @@ dcmd_armour(playerid, const params[])
 
 dcmd_arm(playerid, const params[])
 {
-	return dcmd_armour(playerid, params);
+	return dcmd_heal(playerid, params);
 }
 
 dcmd_repair(playerid, const params[])
 {
-	if (!IsPlayerInAnyVehicle(playerid))
-	{
-	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/repair] You're not in vehicle!");
-		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/repair] Вы не находитесь в транспорте");
-	    return 1;
-	}
-    if (!AddPlayerMoney(playerid, -1000, _serverPlayers))
-	{
-	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/repair] Not enough money. $1000 is needed");
-		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/repair] Недостаточно средств! Необходимо $1000");
-	    return 1;
-	}
-    new vehID = GetPlayerVehicleID(playerid);
-    if (vehID > 0)
-        RepairVehicle(vehID);
-	
-	new messageEnglish[MAX_PLAYER_NAME + 38];
-	format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] repaired his vehicle", _serverPlayers[playerid][name], playerid);
-
-	new messageRussian[MAX_PLAYER_NAME + 38];
-	format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] починил свой транспорт", _serverPlayers[playerid][name], playerid);
-	sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
-	return 1;
+	return CommandRepair(playerid, params, _serverPlayers);
 }
 
 dcmd_rep(playerid, const params[])
@@ -479,294 +398,7 @@ dcmd_r(playerid, const params[])
 
 dcmd_teleport(playerid, const params[])
 {
-    if (!AddPlayerMoney(playerid, -100, _serverPlayers))
-	{
-	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/teleport] Not enough money. $100 is needed");
-		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/teleport] Недостаточно средств! Необходимо $100");
-	    return 1;
-	}
-	new Float:x, Float:y, Float:z;
-	if (!strcmp(params[0], "lv", true))
-	{
-	    x = 1550;
-	    y = 1452;
-	    z = 11;
-		
-        new messageEnglish[MAX_PLAYER_NAME + 75];
-		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to Las Venturas International Airport", _serverPlayers[playerid][name], playerid);
-
-		new messageRussian[MAX_PLAYER_NAME + 75];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] переместился в Международный Аэропорт Лас Вентурас", _serverPlayers[playerid][name], playerid);
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
-	}
-	else if (!strcmp(params[0], "ls", true))
-	{
-	    x = 1783.3;
-	    y = -2447;
-	    z = 14;
-		
-		new messageEnglish[MAX_PLAYER_NAME + 73];
-		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to Los Santos International Airport", _serverPlayers[playerid][name], playerid);
-
-		new messageRussian[MAX_PLAYER_NAME + 73];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] переместился в Международный Аэропорт Лос Сантос", _serverPlayers[playerid][name], playerid);
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
-	}
-	else if (!strcmp(params[0], "sf", true))
-	{
-		x = -1565;
-	    y = -258;
-	    z = 15;
-		
-		new messageEnglish[MAX_PLAYER_NAME + 73];
-		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to San Fierro International Airport", _serverPlayers[playerid][name], playerid);
-
-		new messageRussian[MAX_PLAYER_NAME + 73];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] переместился в Международный Аэропорт Сан Фиерро", _serverPlayers[playerid][name], playerid);
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
-	}
-	else if (!strcmp(params[0], "desert", true))
-	{
-	    switch(random(7))
-	    {
-	        case 0:
-	        {
-	            x = -394;
-			    y = 2287;
-			    z = 339;
-	        }
-	        case 1:
-	        {
-	            x = -95;
-			    y = 2196;
-			    z = 339;
-	        }
-	        case 2:
-	        {
-	            x = -274;
-			    y = 1866;
-			    z = 339;
-	        }
-	        case 3:
-	        {
-	            x = 103;
-			    y = 1719;
-			    z = 339;
-	        }
-	        case 4:
-	        {
-	            x = 177;
-			    y = 2363;
-			    z = 339;
-	        }
-	        case 5:
-	        {
-	            x = -746;
-			    y = 2540;
-			    z = 339;
-	        }
-	        case 6:
-	        {
-	            x = 60;
-			    y = 1448;
-			    z = 339;
-	        }
-	    }
-		
-		new messageEnglish[MAX_PLAYER_NAME + 61];
-		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to the Desert airspace", _serverPlayers[playerid][name], playerid);
-
-		new messageRussian[MAX_PLAYER_NAME + 61];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] переместился в лётную зону \"пустыня\"", _serverPlayers[playerid][name], playerid);
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
-	}
-	else if (!strcmp(params[0], "gate", true))
-	{
-	    switch(random(7))
-	    {
-	        case 0:
-	        {
-	            x = -2525;
-			    y = 2158;
-			    z = 255;
-	        }
-	        case 1:
-	        {
-	            x = -2089;
-			    y = 1876;
-			    z = 255;
-	        }
-	        case 2:
-	        {
-	            x = -2434;
-			    y = 1839;
-			    z = 255;
-	        }
-	        case 3:
-	        {
-	            x = -2114;
-			    y = 1568;
-			    z = 255;
-	        }
-	        case 4:
-	        {
-	            x = -2266;
-			    y = 1911;
-			    z = 255;
-	        }
-	        case 5:
-	        {
-	            x = -2821;
-			    y = 1986;
-			    z = 255;
-	        }
-	        case 6:
-	        {
-	            x = -2772;
-			    y = 1693;
-			    z = 255;
-	        }
-	    }
-		
-		new messageEnglish[MAX_PLAYER_NAME + 73];
-		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to the Golden Gate Bridge airspace", _serverPlayers[playerid][name], playerid);
-
-		new messageRussian[MAX_PLAYER_NAME + 73];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] переместился в лётную зону \"Мост Золотые Ворота\"", _serverPlayers[playerid][name], playerid);
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
-	}
-	else if (!strcmp(params[0], "beach", true))
-	{
-	    switch(random(7))
-	    {
-	        case 0:
-	        {
-	            x = 365;
-			    y = -2061;
-			    z = 115;
-	        }
-	        case 1:
-	        {
-	            x = 126;
-			    y = -1942;
-			    z = 115;
-	        }
-	        case 2:
-	        {
-	            x = 300;
-			    y = -1774;
-			    z = 115;
-	        }
-	        case 3:
-	        {
-	            x = 641;
-			    y = -1930;
-			    z = 115;
-	        }
-	        case 4:
-	        {
-	            x = 644;
-			    y = -2282;
-			    z = 115;
-	        }
-	        case 5:
-	        {
-	            x = 179;
-			    y = -2247;
-			    z = 115;
-	        }
-	        case 6:
-	        {
-	            x = 71;
-			    y = -1819;
-			    z = 115;
-	        }
-	    }
-		
-		new messageEnglish[MAX_PLAYER_NAME + 75];
-		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to the LS Beach airspace", _serverPlayers[playerid][name], playerid);
-
-		new messageRussian[MAX_PLAYER_NAME + 75];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] переместился в лётную зону \"Пляж ЛС\"", _serverPlayers[playerid][name], playerid);
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
-	}
-	else if (!strcmp(params[0], "chill", true))
-	{
-	    switch(random(7))
-	    {
-	        case 0:
-	        {
-	            x = -2379;
-			    y = -1567;
-			    z = 700;
-	        }
-	        case 1:
-	        {
-	            x = -2560;
-			    y = -1319;
-			    z = 700;
-	        }
-	        case 2:
-	        {
-	            x = -2697;
-			    y = -1549;
-			    z = 700;
-	        }
-	        case 3:
-	        {
-	            x = -2194;
-			    y = -1502;
-			    z = 700;
-	        }
-	        case 4:
-	        {
-	            x = -2213;
-			    y = -1064;
-			    z = 700;
-	        }
-	        case 5:
-	        {
-	            x = -2844;
-			    y = -1886;
-			    z = 700;
-	        }
-	        case 6:
-	        {
-	            x = -2891;
-			    y = -1075;
-			    z = 700;
-	        }
-	    }
-		
-		new messageEnglish[MAX_PLAYER_NAME + 73];
-		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to the Chiliad airspace", _serverPlayers[playerid][name], playerid);
-
-		new messageRussian[MAX_PLAYER_NAME + 78];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] переместился в лётную зону \"Гора Чилиад\"", _serverPlayers[playerid][name], playerid);
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
-	}
-	else
-	{
-		x = 0;
-	    y = 0;
-		z = 0;
-	}
-	if (x == 0 && y == 0 && z == 0)
-	{
-	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/teleport]: Unknown place name");
-		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/teleport]: Неизвестное место");
-		return 1;
-	}
-    new vehID = GetPlayerVehicleID(playerid);
-    if (vehID != 0)
-    	SetVehiclePos(vehID, x, y, z);
-	else
-	    SetPlayerPos(playerid, x, y, z);
-	return 1;
+    return CommandTeleport(playerid, params, _serverPlayers);
 }
 
 dcmd_tp(playerid, const params[])
@@ -776,8 +408,7 @@ dcmd_tp(playerid, const params[])
 
 dcmd_language(playerid, const params[])
 {
-    showSelectLanguageDialog(playerid, _serverPlayers);
-	return 1;
+    return CommandLanguage(playerid, params, _serverPlayers);
 }
 
 dcmd_lang(playerid, const params[])
@@ -792,63 +423,17 @@ dcmd_setlang(playerid, const params[])
 
 dcmd_kill(playerid, const params[])
 {
-	SetPlayerHealth(playerid, 0);
-	return 1;
+	return CommandKill(playerid, params, _serverPlayers);
 }
 
 dcmd_reclass(playerid, const params[])
 {
-	ForceClassSelection(playerid);
-	TogglePlayerSpectating(playerid, true);
-    TogglePlayerSpectating(playerid, false);
-	return 1;
+	return CommandReclass(playerid, params, _serverPlayers);
 }
 
 dcmd_pm(playerid, const params[])
 {
-	new messageTo;
-	new messageText[256];//86
-	if (sscanf(params, "ds[254]", messageTo, messageText))//85
-	{
-        if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_PM_TO, "[/pm] Syntax: /pm [id] [message]");
-		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_PM_TO, "[/pm]: Синтаксис: /pm [ид] [сообщение]");
-		return 1;
-	}
-	printf("695 messageText len = %d", strlen(messageText));
-	if (!IsPlayerConnected(messageTo) || messageTo == playerid)
-	{
-	    if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_PM_TO, "[/pm]: Wrong player ID or it's yourself");
-		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_PM_TO, "[/pm]: Неверный id игрока, либо это ваш собственный id");
-		return 1;
-	}
-	new messageToSend[MAX_PLAYER_NAME + 60];
-	if(_serverPlayers[messageTo][language] == PLAYER_LANGUAGE_ENGLISH)
-	    format(messageToSend, sizeof(messageToSend), "[PM] [from %s (%d)]: %.30s", _serverPlayers[playerid][name], playerid, messageText);
-	else
-	    format(messageToSend, sizeof(messageToSend), "[ЛС] [от %s (%d)]:  %.30s", _serverPlayers[playerid][name], playerid, messageText);
- 	SendClientMessage(messageTo, COLOR_SYSTEM_PM_FROM, messageToSend);
- 	
- 	if(_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    format(messageToSend, sizeof(messageToSend), "[PM] [for %s (%d)]: %.30s", _serverPlayers[messageTo][name], messageTo, messageText);
-	else
-	    format(messageToSend, sizeof(messageToSend), "[ЛС] [для %s (%d)]:  %.30s", _serverPlayers[messageTo][name], messageTo, messageText);
- 	SendClientMessage(playerid, COLOR_SYSTEM_PM_TO, messageToSend);
- 	printf("816 messageText len = %d", strlen(messageText));
-	strdel(messageText, 0, 30);
- 	
-	while (strlen(messageText) > 0)
-	{
-	    printf("821 messageText len = %d", strlen(messageText));
-	    format(messageToSend, sizeof(messageToSend), "%.54s", messageText);
-	    SendClientMessage(messageTo, COLOR_SYSTEM_PM_FROM, messageToSend);
-	    SendClientMessage(playerid, COLOR_SYSTEM_PM_TO, messageToSend);
-	    strdel(messageText, 0, 54);
-	}
-	return 1;
+	return CommandPrivateMessage(playerid, params, _serverPlayers);
 }
 
 dcmd_sms(playerid, const params[])
@@ -858,17 +443,37 @@ dcmd_sms(playerid, const params[])
 
 dcmd_s(playerid, const params[])
 {
-	return 1;
+	return CommandSavePosition(playerid, params, _serverPlayers);
 }
 
 dcmd_t(playerid, const params[])
 {
-	return 1;
+	return CommandTeleportPosition(playerid, params, _serverPlayers);
+}
+
+dcmd_pvp(playerid, const params[])
+{
+	return CommandPvp(playerid, params, _serverPlayers);
+}
+
+dcmd_duel(playerid, const params[])
+{
+	return dcmd_pvp(playerid, params);
+}
+
+dcmd_y(playerid, const params[])
+{
+	return CommandAccept(playerid, params, _serverPlayers);
+}
+
+dcmd_n(playerid, const params[])
+{
+	return CommandDecline(playerid, params, _serverPlayers);
 }
 
 dcmd_help(playerid, const params[])
 {
-	return showHelpMessageDialog(playerid, _serverPlayers);
+	return CommandHelp(playerid, params, _serverPlayers);
 }
 
 dcmd_vt(playerid, const params[])
@@ -898,37 +503,11 @@ public setPlayerConnectionStatus(playerid, bool:isConnectedStatus)
 	//_serverPlayers[playerid][isConnected] = isConnectedStatus;
 	if (isConnectedStatus)
 	{
-	    new playerName[MAX_PLAYER_NAME + 1];
-		new result = GetPlayerName(playerid, playerName, sizeof(playerName));
-        #if DEBUG_MODE == true
-		if (!result)
-		{
-		    printf("Cannot get player's name: %s (%d)", playerName, playerid);
-		}
-		#endif
-		//_serverPlayers[playerid][name] = playerName;
-		ServerPlayerSetName(playerid, playerName, _serverPlayers);
-		
-		new messageEnglish[MAX_PLAYER_NAME + 45];
-		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been connected to server!", _serverPlayers[playerid][name], playerid);
-
-		new messageRussian[MAX_PLAYER_NAME + 36];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] подключился к серверу", _serverPlayers[playerid][name], playerid);
-		
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
+	    PlayerConnect(playerid, _serverPlayers);
 	}
 	else
 	{
-	    destroyPlayerVehicle(playerid, _serverPlayers);
-     	//format(serverPlayers[playerid][name[0]], sizeof(serverPlayers[playerid][name[0]]), "");
-     	
-     	new messageEnglish[MAX_PLAYER_NAME + 51];
-		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been disconnected from server=(", _serverPlayers[playerid][name], playerid);
-
-		new messageRussian[MAX_PLAYER_NAME + 38];
-		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] отключился от сервера=(", _serverPlayers[playerid][name], playerid);
-
-		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, _serverPlayers);
+ 		PlayerDisconnect(playerid, _serverPlayers);
 	}
 }
 
@@ -1034,115 +613,6 @@ public OnRustlerFiring(playerid, vehicleid)
     #endif
 }
 
-
-
-/*public OnHydraFiring(playerid, vehicleid, timerid)
-{
-    new timerIndex = FindFiringTimerIndex(playerid, timerid);
-    if (timerIndex == -1)
-	{
-	    printf("Cannot find timer index for timerid: %d (player: %s (%d))", timerid, _serverPlayers[playerid][name], playerid);
-	    return;
-	}
-	if (!IsPlayerConnected(playerid) || !IsPlayerSpawned(playerid) || !IsPlayerInAnyVehicle(playerid))
-	{
-	    KillFiringTimer(playerid, timerIndex);
-	    return;
-	}
-	#if DEBUG_MODE == true
-    //printf("\n------------\n\n\nRustler fire from id: %d", playerid);
-    #endif
-    if (!IsPlayerInAnyVehicle(playerid))
-		KillFiringTimer(playerid, timerIndex);
-		
-	new Float:spositionX, Float:spositionY, Float:spositionZ;
-	GetVehiclePos(vehicleid, spositionX, spositionY, spositionZ);
-	new Float:offsetX, Float:offsetY, Float:offsetZ;
-	new Float:castX, Float:castY, Float:castZ;
-	new targetid = NOTSET;
-	//new searchRadius = HYDRA_SEARCH_MIN_RADIUS ;//HYDRA_SEARCH_MIN_RADIUS
-
-	GetVehicleRelativePos(vehicleid, 0, i, 0, offsetX, offsetY, offsetZ);
-	targetid = GetNearestPlayer(offsetX, offsetY, offsetZ, HYDRA_SEARCH_MIN_RADIUS, playerid);
-
-	if (targetid == NOTSET)
-	    continue;
-
-	new Float:targetX, Float:targetY, Float:targetZ;
-	if (!GetPlayerPos(targetid, targetX, targetY, targetZ))
-	{
-	    #if DEBUG_MODE == true
-	    //printf("bad target %d", targetid);
-	    #endif
-
-	    break;
-	}
-
-	if (CA_RayCastLine(spositionX, spositionY, spositionZ, targetX, targetY, targetZ, castX, castY, castZ) != 0)
-    {
-        #if DEBUG_MODE == true
-		printf("!!![COLLISION FOUND: %.2f %.2f %.2f] (Player %d is behind the object)", castX, castY, castZ, targetid);
-		#endif
-
-		break;
-	}
-	#if BULLET_SYNC_ENABLE == true
-	new bulletData[PR_BulletSync];  //To send bulletData
-	bulletData[PR_hitId] = targetid;
-	bulletData[PR_origin][0] = spositionX;
-	bulletData[PR_origin][1] = spositionY;
-	bulletData[PR_origin][2] = spositionZ;
-	bulletData[PR_hitPos][0] = targetX;
-    bulletData[PR_hitPos][1] = targetY;
-    bulletData[PR_hitPos][2] = targetZ;
-    bulletData[PR_offsets][0] = 0;
-    bulletData[PR_offsets][1] = 0;
-    bulletData[PR_offsets][2] = 0;
-    bulletData[PR_weaponId] = HYDRA_WEAPON_ID;
-    #endif
-
-	if (IsPlayerInAnyVehicle(targetid))
-	{
-		new targetvehicleid = GetPlayerVehicleID(targetid);
-		#if DEBUG_MODE == true
-	    //printf("%d damaged vehicle: %d(player: %d)", playerid, targetvehicleid, targetid);
-	    #endif
-
-		if (!GiveVehicleDamage(targetvehicleid, targetid, playerid, HYDRA_DAMAGE_VEHICLES, _serverPlayers))
-		    continue;
-	    // SetVehicleHealth(targetvehicleid, vehiclehealth - RUSTLER_DAMAGE_VEHICLES);  //  Can rewrite with you GiveVehicleDamage logic here
-	    #if BULLET_SYNC_ENABLE == true
-	    bulletData[PR_hitType] = BULLET_HIT_TYPE_VEHICLE;
-	    SendBulletSync(playerid, targetvehicleid, bulletData);
-	    #endif
-
-	    break;
-	}
-	else
-	{
-	    #if DEBUG_MODE == true
-	    printf("%d damaged player: %d", playerid, targetid);
-	    #endif
-	    new Float:playerhealth = 100;
-        if (!GetPlayerHealth(targetid, playerhealth))
-	        continue;
-        GivePlayerDamage(targetid, playerid, HYDRA_DAMAGE_PLAYERS, _serverPlayers);
-        #if BULLET_SYNC_ENABLE == true
-        bulletData[PR_hitType] = BULLET_HIT_TYPE_PLAYER;
-        SendBulletSync(playerid, targetid, bulletData);
-        #endif
-
-        break;
-	}
-	
-	if (_hydraMissiles[playerid] >= HYDRA_MAXIMAL_DISTANCE)
-        KillFiringTimer(playerid, timerIndex);
-
-	#if DEBUG_MODE == true
-    printf("---------");
-    #endif
-}*/
-
 stock AddPlayerFiringTimerRustler(playerid, vehicleid)
 {
 	if (firingTimer[playerid] != NOTSET)
@@ -1188,30 +658,6 @@ stock AddPlayerFiringTimerHydra(playerid, vehicleid)
 	print("AddPlayerFiringTimerHydra end");
 	//AddFiringTimer(playerid, timerID);
 }
-
-/*stock AddFiringTimer(playerid, timerid)
-{
-	for (new i = 0; i < MISSILES_SHELLS_MAX_COUNT; i++)
-	{
-	    if (firingTimer[playerid][i] != NOTSET)
-	        continue;
-		KillTimer(firingTimer[playerid][i]);
-		firingTimer[playerid][i] = timerid;
-		return;
-	}
-	KillTimer(firingTimer[playerid][MISSILES_SHELLS_MAX_COUNT - 1]);
-	firingTimer[playerid][MISSILES_SHELLS_MAX_COUNT - 1] = timerid;
-}
-
-stock FindFiringTimerIndex(playerid, timerid)
-{
-	for (new i = 0; i < MISSILES_SHELLS_MAX_COUNT; i++)
-	{
-	    if (firingTimer[playerid][i] == timerid)
-			return timerid;
-	}
-	return -1;
-}*/
 
 stock KillFiringTimer(playerid)
 {

@@ -26,6 +26,8 @@ public GivePlayerVehicle(playerid, modelID, Float:x, Float:y, Float:z, Float:fac
 		printf("GivePlayerVehicle error #26 for player %d", playerid);
 		return 1;
 	}
+	new virtualWorld = GetPlayerVirtualWorld(playerid);
+	SetVehicleVirtualWorld(result, virtualWorld);
 	//serverPlayers[playerid][vehicleID] = result;
 	ServerPlayerSetVehicle(playerid, result, serverPlayers);
 	printf("Putting player %s (%d) into his vehicle: %d", serverPlayers[playerid][name], playerid, serverPlayers[playerid][vehicleID]);
@@ -39,10 +41,10 @@ public GivePlayerVehicle(playerid, modelID, Float:x, Float:y, Float:z, Float:fac
 		destroyPlayerVehicle(playerid, serverPlayers);
 		return 1;
 	}
-	if(serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+	/*if(serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
 	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Vehicle created!");
 	else
-		SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Транспорт создан!");
+		SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle]: Транспорт создан!");*/
 	printf("Player %s (%d) was given a vehicle ID: %d", serverPlayers[playerid][name], playerid, serverPlayers[playerid][vehicleID]);
 	return 1;
 }

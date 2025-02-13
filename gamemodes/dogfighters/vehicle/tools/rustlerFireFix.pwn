@@ -374,14 +374,19 @@ stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage, reason, se
         GetVehiclePos(vehicleid, targetX, targetY, targetZ);
 
 		new driverAndPassengers[4];
+		/*SetPVarInt(targetid, "Hit", damagerid);
+		SetPVarInt(targetid, "HReason", reason);*/
         GetVehicleDriverAndPassengers(vehicleid, driverAndPassengers[0], driverAndPassengers[1], driverAndPassengers[2], driverAndPassengers[3]);
-		driverAndPassengers[0] = driverAndPassengers[0] != NOTSET && driverAndPassengers[0] || targetid;
-		new driverHitID = GetPVarInt(targetid, "Hit");
-		driverHitID = driverHitID > 0 && driverHitID || 14;
-		ForcePlayerDeath(driverAndPassengers[0], driverHitID, GetPVarInt(driverAndPassengers[0], "HReason"), serverPlayers);
+		if (ServerPlayerIsFireFix(driverAndPassengers[0], serverPlayers))
+			driverAndPassengers[0] = driverAndPassengers[0] != NOTSET && driverAndPassengers[0] || targetid;
+		/*new driverHitID = GetPVarInt(targetid, "Hit");
+		driverHitID = driverHitID > 0 && driverHitID || 14;*/
+		ForcePlayerDeath(driverAndPassengers[0], damagerid, GetPVarInt(driverAndPassengers[0], "HReason"), serverPlayers);
 		for (new i = 1; i < 4; i++)
 		{
-			if (driverAndPassengers[i] == NOTSET || !IsPlayerConnected(driverAndPassengers[i]) /*|| driverAndPassengers[i] == killerid*/)
+			if (driverAndPassengers[i] == NOTSET || 
+				!IsPlayerConnected(driverAndPassengers[i] || 
+				!ServerPlayerIsFireFix(driverAndPassengers[i], serverPlayers)) /*|| driverAndPassengers[i] == killerid*/)
 				continue;
 			printf("Player %s (%d) was in vehicle and will be killed by %s (%d) now", serverPlayers[i][name], i, serverPlayers[damagerid][name], damagerid);
 			ForcePlayerDeath(driverAndPassengers[i], damagerid, 14, serverPlayers);
@@ -392,8 +397,6 @@ stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage, reason, se
 		//destroyPlayerVehicle(targetid, serverPlayers);
         //ForcePlayerDeath(targetid, damagerid, reason, serverPlayers);
         //SetPlayerHealth(targetid, 0);
-		SetPVarInt(targetid, "Hit", damagerid);
-		SetPVarInt(targetid, "HReason", reason);
 		destroyPlayerVehicle(targetid, serverPlayers);
 	}
 	else
