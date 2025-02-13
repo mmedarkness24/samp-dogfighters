@@ -13,6 +13,7 @@
 		name[SERVER_PLAYERS_MAX_NAME],
 		money,
 		vehicleID,
+		bool:fireFix,
 		kills,
 		deaths,
 		pvpid,
@@ -32,6 +33,9 @@
 	forward DoesServerPlayerHaveVehicle(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetVehicle(playerid, vehicleid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerResetVehicle(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+	forward ServerPlayerSwitchFireFix(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+	forward ServerPlayerResetFireFix(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+	forward ServerPlayerIsFireFix(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerAddKills(playerid, killsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetKills(playerid, killsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerAddDeath(playerid, deathsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
@@ -49,6 +53,7 @@
 	public ServerPlayerReset(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{
 		ServerPlayerResetVehicle(playerid, serverPlayers);
+		ServerPlayerResetFireFix(playerid, serverPlayers);
 		ServerPlayerSetName(playerid, "\%ERR\%NOTSET", serverPlayers);
 		ServerPlayerSetFlood(playerid, 0, serverPlayers);
 		ServerPlayerAddMoney(playerid, -serverPlayers[playerid][money], serverPlayers);
@@ -103,6 +108,19 @@
 		if (serverPlayers[playerid][vehicleID] == NOTSET)
 			return false;
 		return true;
+	}
+	public ServerPlayerSwitchFireFix(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+	{
+		serverPlayers[playerid][fireFix] = !serverPlayers[playerid][fireFix];
+		return serverPlayers[playerid][fireFix];
+	}
+	public ServerPlayerResetFireFix(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+	{
+		serverPlayers[playerid][fireFix] = false;
+	}
+	public ServerPlayerIsFireFix(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+	{
+		return serverPlayers[playerid][fireFix];
 	}
 	public ServerPlayerAddKills(playerid, killsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{

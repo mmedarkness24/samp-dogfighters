@@ -107,6 +107,8 @@ public OnPlayerDisconnect(playerid)
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
+	if (!ServerPlayerIsFireFix(playerid, _serverPlayers))
+	    return 0;
     if ((newkeys & KEY_ACTION) && !(oldkeys & KEY_ACTION) && IsPlayerInAnyVehicle(playerid))
     {
         new vehicleid = GetPlayerVehicleID(playerid);
@@ -294,6 +296,8 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	dcmd(vehicle,7,cmdtext);
 	dcmd(veh,3,cmdtext);
 	dcmd(car,3,cmdtext);
+	
+	dcmd(firefix, 7, cmdtext);
 
 	if (ServerPlayerIsInPvp(playerid, _serverPlayers))
 	{
@@ -348,6 +352,11 @@ dcmd_veh(playerid, const params[])
 dcmd_car(playerid, const params[])
 {
 	return dcmd_vehicle(playerid, params);
+}
+
+dcmd_firefix(playerid, const params[])
+{
+	return CommandFireFix(playerid, params, _serverPlayers);
 }
 
 dcmd_heal(playerid, const params[])
