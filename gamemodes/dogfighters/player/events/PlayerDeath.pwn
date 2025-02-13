@@ -40,8 +40,13 @@ public ProcessPlayerDeath(playerid,	killerid, reason, serverPlayers[MODE_MAX_PLA
 		#endif
 		PlayerIncreaseDuelScore(serverPlayers[playerid][pvpid], 1, serverPlayers);
 	}
+	if (ServerPlayerIsFireFix(playerid, serverPlayers))
+	{
+	    SendDeathMessage(killerid, playerid, reason);
+	    return 1;
+	}
 	if (GetPVarInt(playerid, "Death") == 1)
-		return 0;
+		return 1;
 	SetPVarInt(playerid, "Death", 1);
 	new lastHit = GetPVarInt(playerid, "Hit");
 	printf("ProcessPlayerDeath pid:%d kid:%d reason:%d\nHit:%d\nName: %s, Cash:%d\nName: %s, Cash: %d", 
@@ -65,69 +70,69 @@ public ProcessPlayerDeath(playerid,	killerid, reason, serverPlayers[MODE_MAX_PLA
 			AddPlayerDeaths(playerid, 1, serverPlayers);
 	        SendDeathMessage(killerid, playerid, reason);
 			ProcessPlayerKill(killerid, playerid, reason, serverPlayers);
-			return 0;
+			return 1;
 		}
 		case 31://	M4
 		{
 			AddPlayerDeaths(playerid, 1, serverPlayers);
 			ProcessPlayerKill(killerid, playerid, reason, serverPlayers);
-	        return 0;
+	        return 1;
 		}
 	    case 35://  RPG
 	    {
 			AddPlayerDeaths(playerid, 1, serverPlayers);
 	        SendDeathMessage(killerid, playerid, reason);
 			ProcessPlayerKill(killerid, playerid, reason, serverPlayers);
-	        return 0;
+	        return 1;
 	    }
 	    case 38://  Minigun
 	    {
 			AddPlayerDeaths(playerid, 1, serverPlayers);
 	        SendDeathMessage(killerid, playerid, reason);
 			ProcessPlayerKill(killerid, playerid, reason, serverPlayers);
-	        return 0;
+	        return 1;
 	    }
 	    case 49://  Vehicle
 	    {
 			AddPlayerDeaths(playerid, 1, serverPlayers);
 	        SendDeathMessage(killerid, playerid, reason);
 			ProcessPlayerKill(killerid, playerid, reason, serverPlayers);
-	        return 0;
+	        return 1;
 	    }
 	    case 50://  Helicopter Blades
 	    {
 			AddPlayerDeaths(playerid, 1, serverPlayers);
 	        SendDeathMessage(killerid, playerid, reason);
 			ProcessPlayerKill(killerid, playerid, reason, serverPlayers);
-	        return 0;
+	        return 1;
 	    }
 	    case 51://  Explosion
 	    {
 			AddPlayerDeaths(playerid, 1, serverPlayers);
 	        SendDeathMessage(killerid, playerid, reason);
 			ProcessPlayerKill(killerid, playerid, reason, serverPlayers);
-	        return 0;
+	        return 1;
 	    }
 	    case 53://  Drowned
 	    {
 			AddPlayerDeaths(playerid, 1, serverPlayers);
 	        SendDeathMessage(killerid, playerid, reason);
 			ProcessPlayerKill(killerid, playerid, reason, serverPlayers);
-	        return 0;
+	        return 1;
 	    }
 	    case 54://  Splat(Dropped)
 	    {
 			AddPlayerDeaths(playerid, 1, serverPlayers);
 	        SendDeathMessage(killerid, playerid, reason);
 			ProcessPlayerKill(killerid, playerid, reason, serverPlayers);
-	        return 0;
+	        return 1;
 	    }
 	    case 255://    Suiside
 	    {
 			AddPlayerDeaths(playerid, 1, serverPlayers);
 	        SendDeathMessage(killerid, playerid, 14);
 			ProcessPlayerKill(killerid, playerid, reason, serverPlayers);
-	        return 0;
+	        return 1;
 	    }
 	}
 	return 1;
