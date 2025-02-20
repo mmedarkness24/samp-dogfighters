@@ -60,17 +60,17 @@ public LoginSystem_OnPlayerConnect(playerid, serverPlayers[MODE_MAX_PLAYERS][ser
 	if (rowid != SQL_INVALID_ROW)//if registered
 	{
 		if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-			ShowPlayerDialog(playerid, DIALOG_ID_LOGIN, DIALOG_STYLE_PASSWORD, "User Accounts:", "You are registered, please insert your password to continue:", "Login", "Exit");
+			ShowPlayerDialog(playerid, DIALOG_ID_LOGIN, DIALOG_STYLE_PASSWORD, "User Accounts:", "\t\t     You are registered\t\t\n·\t\tplease insert your password to continue:\t\t·", "Login", "Exit");
 		else
-			ShowPlayerDialog(playerid, DIALOG_ID_LOGIN, DIALOG_STYLE_PASSWORD, "Аккаунт:", "Ваш ник зарегистрирован. Введите пароль для продолжения", "Логин", "Выйти");
+			ShowPlayerDialog(playerid, DIALOG_ID_LOGIN, DIALOG_STYLE_PASSWORD, "Аккаунт:", "\t\t     Ваш ник зарегистрирован!\t\t\n·\t\tВведите пароль для продолжения:\t\t    ·", "Логин", "Выйти");
 	    
 	}
 	else//if new user
 	{
 		if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-			ShowPlayerDialog(playerid, DIALOG_ID_REGISTER, DIALOG_STYLE_PASSWORD, "User Accounts:", "You are not recognized on the database, please insert a password to sing-in and continue:", "Register", "");
+			ShowPlayerDialog(playerid, DIALOG_ID_REGISTER, DIALOG_STYLE_PASSWORD, "User Accounts:", "\t\tYou are not recognized on the database\t\t\n·\t\tplease insert a password to sing-in and continue:\t\t·", "Register", "Exit");
 		else
-			ShowPlayerDialog(playerid, DIALOG_ID_REGISTER, DIALOG_STYLE_PASSWORD, "Аккаунт:", "Вы ещё не зарегистрированы на данном сервере. Введите пароль для регистрации:", "Зарегистрироваться", "Выйти");
+			ShowPlayerDialog(playerid, DIALOG_ID_REGISTER, DIALOG_STYLE_PASSWORD, "Аккаунт:", "\t\tВы ещё не зарегистрированы на данном сервере!\n·\t\t\tВведите пароль для регистрации:\t\t\t·", "Ввод", "Выйти");
 	}
 
 	return 1;
@@ -113,7 +113,7 @@ public LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inpu
 						return ShowPlayerDialog(playerid, 
 												DIALOG_ID_REGISTER, 
 												DIALOG_STYLE_PASSWORD, 
-												"User Accounts:", "You are not recognized on the database, please insert a password to sing-in and continue:", 
+												"User Accounts:", "\t\tYou are not recognized on the database\t\t\n·\t\tplease insert a password to sing-in and continue:\t\t·", 
 												"Register", 
 												"Exit");
 					else
@@ -121,7 +121,7 @@ public LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inpu
 												DIALOG_ID_REGISTER, 
 												DIALOG_STYLE_PASSWORD, 
 												"Аккаунт:", 
-												"Ваш ник ещё не зарегистрирован на данном сервере. Введите пароль для регистрации:", 
+												"\tВаш ник ещё не зарегистрирован на данном сервере\t\t\n·\t\t   Введите пароль для регистрации:\t\t\t·", 
 												"Регистрация", 
 												"Выход");
 		        }
@@ -185,14 +185,14 @@ public LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inpu
 						return ShowPlayerDialog(playerid, 
 												DIALOG_ID_LOGIN, DIALOG_STYLE_PASSWORD, 
 												"User Accounts:", 
-												"You are registered, please insert your password to continue or create a new account by changing your nickname:", 
+												"\t\tYou entered wrong password\t\t\n·\t\tplease insert your password to continue or create a new account by changing your nickname:\t\t·", 
 												"Login", 
 												"Exit");
 					else
 						return ShowPlayerDialog(playerid, 
 												DIALOG_ID_LOGIN, DIALOG_STYLE_PASSWORD, 
 												"Аккаунт:", 
-												"Вы ввели неверный пароль. Попробуйте снова, либо создайте новый аккаунт, сменив свой ник.:", 
+												"\t\t\t\t   Вы ввели неверный пароль.\t\t\n·\t\tПопробуйте снова, либо создайте новый аккаунт, сменив свой ник.:\t\t   ·", 
 												"Login", 
 												"Exit");
 		            

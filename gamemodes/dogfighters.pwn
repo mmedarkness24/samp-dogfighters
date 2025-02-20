@@ -268,7 +268,6 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 public OnPlayerDeath(playerid, killerid, reason)
 {
 	//printf("OnPlayerDeath: %s (%d) -> %s (%d) [%d];", _serverPlayers[killerid][name], killerid, _serverPlayers[playerid][name], playerid, reason);
-	LoginSystem_OnPlayerDeath(playerid, killerid, reason, _serverPlayers);
 	return ProcessPlayerDeath(playerid,	killerid, reason, _serverPlayers);
 }
 
