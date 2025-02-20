@@ -1,3 +1,4 @@
+/* Project files Encoding: Windows 1251 (Кириллица) */
 #include <a_samp>
 #include <core>
 #include <float>
@@ -38,6 +39,7 @@ main()
 		}
 		ResetHydraMissiles(_hydraMissiles);
 		ServerPlayersReset(_serverPlayers);
+		OnLoginSystemInit();
 		
 		if (GetMaxPlayers() > MODE_MAX_PLAYERS)
 		{
@@ -88,6 +90,7 @@ public OnUpdateLong()
 public OnGameModeExit()
 {
 	print("Unloading Dogfighters Gamemode (exit)");
+	OnLoginSystemExit();
 	ResetHydraMissiles(_hydraMissiles);
 	ServerPlayersReset(_serverPlayers);
 	return 1;
@@ -98,11 +101,14 @@ public OnPlayerConnect(playerid)
 	GameTextForPlayer(playerid,"~w~SA-MP: ~r~Dogfighters ~g~Server",5000,5);
 	setPlayerConnectionStatus(playerid, true);
 	showSelectLanguageDialog(playerid, _serverPlayers);
+	/*new FuncName[28] = "LoginSystem_OnPlayerConnect";
+	ServerPlayerSetPersonalTimer(playerid, SetTimerEx(FuncName, 1000, true, "i", playerid), _serverPlayers);*/
 	return 1;
 }
 
 public OnPlayerDisconnect(playerid)
 {
+	LoginSystem_OnPlayerDisconnect(playerid, _serverPlayers);
 	setPlayerConnectionStatus(playerid, false);
 	return 1;
 }
@@ -148,6 +154,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	#if DEBUG_MODE == true
     printf("OnDialogResponse %d %d %d %d %s", playerid, dialogid, response, listitem, inputtext);
     #endif
+    LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inputtext, _serverPlayers);
 	switch(dialogid)
 	{
 	    case 0:
@@ -160,6 +167,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "You will now receive english language messages from server");
 			else
 			    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Сообщения от сервера теперь будут приходить на Русском языке");
+			LoginSystem_OnPlayerConnect(playerid, _serverPlayers);
 	    }
 	    case DIALOG_SELECT_VEHICLE:
 	    {
@@ -260,6 +268,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 public OnPlayerDeath(playerid, killerid, reason)
 {
 	//printf("OnPlayerDeath: %s (%d) -> %s (%d) [%d];", _serverPlayers[killerid][name], killerid, _serverPlayers[playerid][name], playerid, reason);
+	LoginSystem_OnPlayerDeath(playerid, killerid, reason, _serverPlayers);
 	return ProcessPlayerDeath(playerid,	killerid, reason, _serverPlayers);
 }
 

@@ -22,7 +22,8 @@
 		Float:positionX,
 		Float:positionY,
 		Float:positionZ,
-		anticheat
+		anticheat,
+		//personalTimer
 	}
 	forward ServerPlayerReset(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayersReset(serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
@@ -48,7 +49,9 @@
 	forward ServerPlayerSetPos(playerid, Float:x, Float:y, Float:z, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerAddAnticheat(playerid, anticheatValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetAnticheat(playerid, anticheatValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
-	
+	//forward ServerPlayerSetPersonalTimer(playerid, timerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+	//forward ServerPlayerResetPersonalTimer(playerid, serverPlayers[MODE_MAX_PLAYERID][serverPlayer]);
+
 	//Resets all player's variables to default (DO NOT RESET PLAYER'S VEHICLE ID)
 	public ServerPlayerReset(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{
@@ -65,6 +68,8 @@
 		ServerPlayerSetPvpID(playerid, NOTSET, serverPlayers);
 		ServerPlayerSetPvpScore(playerid, NOTSET, serverPlayers);
 		ServerPlayerSetPvpTextdraw(playerid, PlayerText:NOTSET, serverPlayers);
+
+		//ServerPlayerResetPersonalTimer(playerid, serverPlayers);
 
 		#if DEBUG_MODE == true
 		printf("Player %s (%d) reset", serverPlayers[playerid][name], playerid);
@@ -175,5 +180,22 @@
 	{
 		serverPlayers[playerid][anticheat] = anticheatValue;
 	}
+	/*public ServerPlayerSetPersonalTimer(playerid, timerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+	{
+		if (timerid < 0)
+		{
+			printf("Cannot set personal timer for %s (%d) - timerid is %d", serverPlayers[playerid][name], playerid, timerid);
+		}
+		if (serverPlayers[playerid][personalTimer] != NOTSET)
+			ServerPlayerResetPersonalTimer(playerid, serverPlayers);
+		serverPlayers[playerid][personalTimer] = timerid;
+	}
+	public ServerPlayerResetPersonalTimer(playerid, serverPlayers[MODE_MAX_PLAYERID][serverPlayer])
+	{
+		if (serverPlayers[playerid][personalTimer] < 0)
+			return;
+		KillTimer(serverPlayers[playerid][personalTimer]);
+		serverPlayers[playerid][personalTimer] = NOTSET;
+	}*/
 	
 #endif
