@@ -294,6 +294,14 @@ public OnPlayerRequestClass(playerid, classid)
 
 public OnPlayerCommandText(playerid, cmdtext[])
 {
+	if (!_serverPlayers[playerid][isLoggedIn])
+	{
+	    if (_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "You should login first");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "Сначала необходимо залогиниться");
+		return 1;
+	}
     dcmd(kill, 4, cmdtext);
     
     dcmd(language,8,cmdtext);

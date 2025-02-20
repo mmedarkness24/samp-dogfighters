@@ -21,7 +21,7 @@ public ProcessPlayerKill(playerid, victimid, reason, serverPlayers[MODE_MAX_PLAY
 	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, message);
 	
 	printf("ProcessPlayerKill %d -> %d [%d] - $%d", playerid, victimid, reason, serverPlayers[victimid][money], serverPlayers[playerid][money]);
-	if (serverPlayers[victimid][money] < 100)//	< 500
+	if (serverPlayers[victimid][money] < 300)//	< 500
 		return;
 	
 	if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)

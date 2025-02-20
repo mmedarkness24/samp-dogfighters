@@ -8,6 +8,7 @@
 
 	enum serverPlayer
 	{
+		bool:isLoggedIn,
 		flood,
 		language,
 		name[SERVER_PLAYERS_MAX_NAME],
@@ -49,6 +50,7 @@
 	forward ServerPlayerSetPos(playerid, Float:x, Float:y, Float:z, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerAddAnticheat(playerid, anticheatValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetAnticheat(playerid, anticheatValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+	forward ServerPlayerSetLoggedIn(playerid, bool:stateIsLogged, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	//forward ServerPlayerSetPersonalTimer(playerid, timerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	//forward ServerPlayerResetPersonalTimer(playerid, serverPlayers[MODE_MAX_PLAYERID][serverPlayer]);
 
@@ -68,6 +70,7 @@
 		ServerPlayerSetPvpID(playerid, NOTSET, serverPlayers);
 		ServerPlayerSetPvpScore(playerid, NOTSET, serverPlayers);
 		ServerPlayerSetPvpTextdraw(playerid, PlayerText:NOTSET, serverPlayers);
+		ServerPlayerSetLoggedIn(playerid, false, serverPlayers);
 
 		//ServerPlayerResetPersonalTimer(playerid, serverPlayers);
 
@@ -179,6 +182,10 @@
 	public ServerPlayerSetAnticheat(playerid, anticheatValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{
 		serverPlayers[playerid][anticheat] = anticheatValue;
+	}
+	public ServerPlayerSetLoggedIn(playerid, bool:stateIsLogged, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+	{
+		serverPlayers[playerid][isLoggedIn] = stateIsLogged;
 	}
 	/*public ServerPlayerSetPersonalTimer(playerid, timerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{

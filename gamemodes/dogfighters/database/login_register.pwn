@@ -145,7 +145,7 @@ public LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inpu
 					SendClientMessage(playerid, 0x00FF00FF, "SUCCESS: You have successfully registered your account in the server.");
 				else
 					SendClientMessage(playerid, 0x00FF00FF, "КРУТ!: Ваш ник теперь зарегистрирован на этом сервере.");
-		        
+				ServerPlayerSetLoggedIn(playerid, true, serverPlayers);  
 		    }
 		}
 		case DIALOG_ID_LOGIN://if response for login dialog
@@ -202,6 +202,7 @@ public LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inpu
 					SendClientMessage(playerid, 0x00FF00FF, "SUCCESS: You have successfully logged in your account, enjoy playing!");
 				else
 					SendClientMessage(playerid, 0x00FF00FF, "КРУТ!: Вы успешно авторизовались под своим логином. Желаем вам приятной игры!");
+				ServerPlayerSetLoggedIn(playerid, true, serverPlayers);
 		    }
 		}
 	}
