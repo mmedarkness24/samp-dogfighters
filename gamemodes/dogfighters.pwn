@@ -1,3 +1,4 @@
+/* Project files Encoding: Windows 1251 (Кириллица) */
 #include <a_samp>
 #include <core>
 #include <float>
@@ -38,6 +39,7 @@ main()
 		}
 		ResetHydraMissiles(_hydraMissiles);
 		ServerPlayersReset(_serverPlayers);
+		OnLoginSystemInit();
 		
 		if (GetMaxPlayers() > MODE_MAX_PLAYERS)
 		{
@@ -88,6 +90,7 @@ public OnUpdateLong()
 public OnGameModeExit()
 {
 	print("Unloading Dogfighters Gamemode (exit)");
+	OnLoginSystemExit();
 	ResetHydraMissiles(_hydraMissiles);
 	ServerPlayersReset(_serverPlayers);
 	return 1;
@@ -98,11 +101,14 @@ public OnPlayerConnect(playerid)
 	GameTextForPlayer(playerid,"~w~SA-MP: ~r~Dogfighters ~g~Server",5000,5);
 	setPlayerConnectionStatus(playerid, true);
 	showSelectLanguageDialog(playerid, _serverPlayers);
+	/*new FuncName[28] = "LoginSystem_OnPlayerConnect";
+	ServerPlayerSetPersonalTimer(playerid, SetTimerEx(FuncName, 1000, true, "i", playerid), _serverPlayers);*/
 	return 1;
 }
 
 public OnPlayerDisconnect(playerid)
 {
+	LoginSystem_OnPlayerDisconnect(playerid, _serverPlayers);
 	setPlayerConnectionStatus(playerid, false);
 	return 1;
 }
@@ -148,6 +154,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	#if DEBUG_MODE == true
     printf("OnDialogResponse %d %d %d %d %s", playerid, dialogid, response, listitem, inputtext);
     #endif
+    LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inputtext, _serverPlayers);
 	switch(dialogid)
 	{
 	    case 0:
@@ -160,6 +167,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "You will now receive english language messages from server");
 			else
 			    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Сообщения от сервера теперь будут приходить на Русском языке");
+			LoginSystem_OnPlayerConnect(playerid, _serverPlayers);
 	    }
 	    case DIALOG_SELECT_VEHICLE:
 	    {
@@ -286,6 +294,14 @@ public OnPlayerRequestClass(playerid, classid)
 
 public OnPlayerCommandText(playerid, cmdtext[])
 {
+	if (!_serverPlayers[playerid][isLoggedIn])
+	{
+	    if (_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "You should login first");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "Сначала необходимо залогиниться");
+		return 1;
+	}
     dcmd(kill, 4, cmdtext);
     
     dcmd(language,8,cmdtext);
@@ -300,6 +316,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	dcmd(car,3,cmdtext);
 	
 	dcmd(firefix, 7, cmdtext);
+	
+	dcmd(password, 8, cmdtext);
+	dcmd(pass, 4, cmdtext);
 
 	if (ServerPlayerIsInPvp(playerid, _serverPlayers))
 	{
@@ -359,6 +378,16 @@ dcmd_car(playerid, const params[])
 dcmd_firefix(playerid, const params[])
 {
 	return CommandFireFix(playerid, params, _serverPlayers);
+}
+
+dcmd_password(playerid, const params[])
+{
+	return CommandChangePassword(playerid, params, _serverPlayers);
+}
+
+dcmd_pass(playerid, const params[])
+{
+	return dcmd_password(playerid, params);
 }
 
 dcmd_heal(playerid, const params[])
@@ -518,8 +547,8 @@ public OnRustlerFiring(playerid, vehicleid)
 	    KillFiringTimer(playerid);
 	    return;
 	}
-	#if DEBUG_MODE == true
-    //printf("\n------------\n\n\nRustler fire from id: %d", playerid);
+	#if DEBUG_MODE_FIREFIX == true
+    printf("\n------------\n\n\nRustler fire from id: %d", playerid);
     #endif
     if (!IsPlayerInAnyVehicle(playerid))
 		KillFiringTimer(playerid);
@@ -543,7 +572,7 @@ public OnRustlerFiring(playerid, vehicleid)
 		new Float:targetX, Float:targetY, Float:targetZ;
 		if (!GetPlayerPos(targetid, targetX, targetY, targetZ))
 		{
-		    #if DEBUG_MODE == true
+		    #if DEBUG_MODE_FIREFIX == true
 		    printf("bad target %d", targetid);
 		    #endif
 
@@ -552,7 +581,7 @@ public OnRustlerFiring(playerid, vehicleid)
 
 		if (CA_RayCastLine(vehPositionX, vehPositionY, vehPositionZ, targetX, targetY, targetZ, castX, castY, castZ) != 0)
         {
-            #if DEBUG_MODE == true
+            #if DEBUG_MODE_FIREFIX == true
 			printf("!!![COLLISION FOUND: %.2f %.2f %.2f] (Player %d is behind the object)", castX, castY, castZ, targetid);
 			#endif
 
@@ -576,7 +605,7 @@ public OnRustlerFiring(playerid, vehicleid)
 		if (IsPlayerInAnyVehicle(targetid))
 		{
 			new targetvehicleid = GetPlayerVehicleID(targetid);
-			#if DEBUG_MODE == true
+			#if DEBUG_MODE_FIREFIX == true
 		    printf("%d damaged vehicle: %d(player: %d)", playerid, targetvehicleid, targetid);
 		    #endif
 
@@ -592,7 +621,7 @@ public OnRustlerFiring(playerid, vehicleid)
 		}
 		else
 		{
-		    #if DEBUG_MODE == true
+		    #if DEBUG_MODE_FIREFIX == true
 		    printf("%d damaged player: %d", playerid, targetid);
 		    #endif
 		    new Float:playerhealth = 100;
@@ -608,7 +637,7 @@ public OnRustlerFiring(playerid, vehicleid)
 		}
 	}
 	//	KillFiringTimer(playerid, 0);
-	#if DEBUG_MODE == true
+	#if DEBUG_MODE_FIREFIX == true
     printf("---------");
     #endif
 }

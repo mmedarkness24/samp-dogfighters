@@ -7,5 +7,5 @@
 	#include "dogfighters/vehicle/tools/VehicleOwner.pwn"
 	#include "dogfighters/vehicle/tools/VehicleDriver.pwn"
 	#include "dogfighters/vehicle/tools/VehicleDriverAndPassengers.pwn"
-	#include "dogfighters/vehicle/tools/rustlerFireFix.pwn"
+	#include "dogfighters/vehicle/tools/FireFix.pwn"
 #endif

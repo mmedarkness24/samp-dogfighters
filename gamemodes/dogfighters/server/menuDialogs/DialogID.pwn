@@ -13,4 +13,8 @@
 #define DIALOG_HELP_MESSAGE 21
 #define DIALOG_HELP_DUEL 22
 
+#define DIALOG_ID_REGISTER (31) // dialog is in file: gamemodes\dogfighters\database\login_register.pwn
+#define DIALOG_ID_LOGIN (32) // dialog is in file: gamemodes\dogfighters\database\login_register.pwn
+#define DIALOG_ID_CHANGEPWD (33) // dialog is in file: gamemodes\dogfighters\database\login_register.pwn
+
 #endif

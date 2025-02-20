@@ -1,13 +1,13 @@
 #if !defined SVR_EVENTS_UPDATE_MISSILES
 #define SVR_EVENTS_UPDATE_MISSILES
 
-#define DEBUG_MODE_UPDATE_MISSILES true
+#define DEBUG_MODE_UPDATE_MISSILES false
 
 #include <float>
 #include <math>
 
 #include "dogfighters\server\serverInfo\serverMain.pwn"
-#include "dogfighters\vehicle\tools\rustlerFireFix.pwn"
+#include "dogfighters\vehicle\tools\FireFix.pwn"
 
 forward OnHydraUpdateMissiles(hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo], serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 forward HydraCheckMissileStatus(missileIndex, hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo]);
@@ -22,6 +22,7 @@ public OnHydraUpdateMissiles(hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MA
 			continue;
 		if (HydraCheckMissileStatus(i, hydraMissiles))
 			continue;
+		#if DEBUG_MODE_UPDATE_MISSILES == true
 		printf("Distance: %.2f", GetDistance3D(hydraMissiles[i][hydraMissileFinalPositionX], 
 						hydraMissiles[i][hydraMissileFinalPositionY], 
 						hydraMissiles[i][hydraMissileFinalPositionZ],
@@ -37,6 +38,7 @@ public OnHydraUpdateMissiles(hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MA
 				hydraMissiles[i][hydraMissileFinalPositionX],
 				hydraMissiles[i][hydraMissileFinalPositionY],
 				hydraMissiles[i][hydraMissileFinalPositionZ]);
+		#endif
 		new Float:fullSpeed = Float:(HYDRA_MISSILE_SPEED + (hydraMissiles[i][hydraMissileIteration] * HYDRA_MISSILE_ACCELERATION));
 		if (fullSpeed > HYDRA_MAX_MISSILE_SPD)
 			fullSpeed = Float:HYDRA_MAX_MISSILE_SPD;
@@ -53,7 +55,9 @@ public OnHydraUpdateMissiles(hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MA
 									newY,
 									newZ);
 		hydraMissiles[i][hydraMissileIteration]++;
+		#if DEBUG_MODE_UPDATE_MISSILES == true
 		printf("Missile new coordinates: [%.2f;%.2f;%.2f]", newX, newY, newZ);
+		#endif
 		hydraMissiles[i][hydraMissileLaunchPositionX] = newX;
 		hydraMissiles[i][hydraMissileLaunchPositionY] = newY;
 		hydraMissiles[i][hydraMissileLaunchPositionZ] = newZ;
@@ -73,7 +77,9 @@ public OnHydraUpdateMissiles(hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MA
 		    #endif
 		    continue;
 		}
+		#if DEBUG_MODE_UPDATE_MISSILES == true
 		printf("Missile found a target: %d [%.2f;%.2f;%.2f]", targetid, targetX, targetY, targetZ);
+		#endif
 		#if BULLET_SYNC_ENABLE == true
 		new bulletData[PR_BulletSync];  //To send bulletData
 		bulletData[PR_hitId] = targetid;
@@ -131,7 +137,9 @@ public OnHydraUpdateMissiles(hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MA
 
 public Float:HydraGetDistancePercent(Float:startValue, Float:endValue, Float:value)
 {
+	#if DEBUG_MODE_UPDATE_MISSILES == true
 	printf("HydraGetDistancePercent: min=%.2f max=%.2f value=%.2f", startValue, endValue, value);
+	#endif
 	return (value / (endValue - startValue));
 	//return floatdiv(value, floatsub(maximalValue, minimalValue));
 	/*
@@ -145,7 +153,9 @@ public HydraInterpolateCoordinates(Float:x1, Float:y1, Float:z1, Float:x2, Float
 {
 	/*new Float:percentX, Float:percentY, Float:percentZ;
 	new Float:sizeX, Float:sizeY, Float:sizeZ;*/
+	#if DEBUG_MODE_UPDATE_MISSILES == true
 	printf("HydraInterpolateCoordinates [%.2f;%.2f;%.2f] [%.2f;%.2f;%.2f] [%.2f] [%.2f;%.2f;%.2f]", x1, y1, z1, x2, y2, z2, distance, resultX, resultY, resultZ);
+	#endif
 	
 	
 	new Float:mainDistance = Float:GetDistance3D(x1, y1, z1, x2, y2, z2);
@@ -172,8 +182,10 @@ public HydraInterpolateCoordinates(Float:x1, Float:y1, Float:z1, Float:x2, Float
 		// resultY = floatadd(y1, floatmul(sizeY, percentY));
 	// if (percentZ <= 100)
 		// resultZ = floatadd(z1, floatmul(sizeZ, percentZ));
+	#if DEBUG_MODE_UPDATE_MISSILES == true
 	printf("resultXYZ: [%.2f;%.2f;%.2f]", resultX, resultY, resultZ);
 	printf("HydraInterpolateEnd");
+	#endif
 	//return {resultX, resultY, resultZ};
 }
 

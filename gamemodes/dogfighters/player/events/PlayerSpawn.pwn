@@ -13,5 +13,15 @@ public ProcessPlayerSpawn(playerid, score, serverPlayers[MODE_MAX_PLAYERS][serve
 	SetPVarInt(playerid, "HReason", -1);
 	
 	SetPlayerScore(playerid, score);
+
+	if (!serverPlayers[playerid][isLoggedIn])
+	{
+		printf("[!]> Player %s (%d) was trying to spawn without login", serverPlayers[playerid][name], playerid);
+		if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+			SendClientMessage(playerid, COLOR_SYSTEM_RED, "You were trying to spawn without login and will be kicked by anticheat system");
+		else
+			SendClientMessage(playerid, COLOR_SYSTEM_RED, "Вы попытались заспавниться не залогинившись и были кикнуты античитом.");
+		Kick(playerid);
+	}
 	return 1;
 }

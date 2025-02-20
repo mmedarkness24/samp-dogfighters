@@ -3,6 +3,7 @@
 //#include "dogfighters\player\events\PlayerKill.pwn"
 #include "dogfighters\player\playerMain.pwn"
 #include "dogfighters\server\serverInfo\serverMain.pwn"
+#include "dogfighters\database\databaseMain.pwn"
 //#include "dogfighters\player\localization\PlayerLanguage.pwn"
 
 forward ForcePlayerDeath(playerid, killerid, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
@@ -43,12 +44,15 @@ public ProcessPlayerDeath(playerid,	killerid, reason, serverPlayers[MODE_MAX_PLA
 	if (!ServerPlayerIsFireFix(playerid, serverPlayers))
 	{
 	    //SendDeathMessage(killerid, playerid, reason);
+		LoginSystem_OnPlayerDeath(playerid, NOTSET, NOTSET, serverPlayers);
 		SetPVarInt(playerid, "Death", 1);
 	    return 1;
 	}
 	if (GetPVarInt(playerid, "Death") == 1)
 		return 1;
 	SetPVarInt(playerid, "Death", 1);
+	LoginSystem_OnPlayerDeath(playerid, killerid, reason, serverPlayers);
+	
 	new lastHit = GetPVarInt(playerid, "Hit");
 	printf("ProcessPlayerDeath pid:%d kid:%d reason:%d\nHit:%d\nName: %s, Cash:%d\nName: %s, Cash: %d", 
 		playerid,
