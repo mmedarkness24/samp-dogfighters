@@ -21,6 +21,7 @@ forward OnRustlerFiring(playerid, vehicleid);
 forward OnUpdateShort();
 forward OnUpdateLong();
 
+new _dogfightInfo[DogfightInfo];
 new _serverPlayers[MODE_MAX_PLAYERS][serverPlayer];
 new _hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo];
 new firingTimer[MODE_MAX_PLAYERS];
@@ -32,6 +33,8 @@ main()
 		printf("Author: %s", MODE_AUTHOR);
 		printf("Version: %s (%s)", MODE_VER_MAJOR, MODE_VER_UPDATE);
 		
+		ResetDogfightInfo(_dogfightInfo);
+		printf("dogfightInfo[usedBy]=%d", _dogfightInfo[usedBy]);
 		for (new i = 0; i < MODE_MAX_PLAYERS; i++)
 		{
 		    firingTimer[i] = NOTSET;
@@ -261,6 +264,22 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			dcmd_vehicle(playerid, params);
 			return 1;
 	    }
+		case DIALOG_ADD_DF_PL1:
+		    return processPlayer1Dialog(playerid, response, inputtext, _serverPlayers, _dogfightInfo);
+		case DIALOG_ADD_DF_PL2:
+		    return processPlayer2Dialog(playerid, response, inputtext, _serverPlayers, _dogfightInfo);
+		case DIALOG_ADD_DF_SC1:
+		    return processScore1Dialog(playerid, response, inputtext, _serverPlayers, _dogfightInfo);
+		case DIALOG_ADD_DF_SC2:
+		    return processScore2Dialog(playerid, response, inputtext, _serverPlayers, _dogfightInfo);
+		case DIALOG_ADD_DF_YT1:
+		    return processYouTube1Dialog(playerid, response, inputtext, _serverPlayers, _dogfightInfo);
+		case DIALOG_ADD_DF_YT2:
+		    return processYouTube2Dialog(playerid, response, inputtext, _serverPlayers, _dogfightInfo);
+		case DIALOG_ADD_DF_REF:
+		    return processRefereeDialog(playerid, response, inputtext, _serverPlayers, _dogfightInfo);
+		case DIALOG_ADD_DF_APPROVE:
+		    return processSummaryDialog(playerid, response, inputtext, _serverPlayers, _dogfightInfo);
    }
    return 0;
 }
@@ -319,6 +338,8 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	
 	dcmd(password, 8, cmdtext);
 	dcmd(pass, 4, cmdtext);
+	
+	dcmd(savedf, 6, cmdtext);
 
 	if (ServerPlayerIsInPvp(playerid, _serverPlayers))
 	{
@@ -388,6 +409,11 @@ dcmd_password(playerid, const params[])
 dcmd_pass(playerid, const params[])
 {
 	return dcmd_password(playerid, params);
+}
+
+dcmd_savedf(playerid, const params[])
+{
+	return CommandSaveDogfight(playerid, params, _serverPlayers);
 }
 
 dcmd_heal(playerid, const params[])

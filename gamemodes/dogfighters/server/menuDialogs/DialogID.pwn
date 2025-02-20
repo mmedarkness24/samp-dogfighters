@@ -17,4 +17,13 @@
 #define DIALOG_ID_LOGIN (32) // dialog is in file: gamemodes\dogfighters\database\login_register.pwn
 #define DIALOG_ID_CHANGEPWD (33) // dialog is in file: gamemodes\dogfighters\database\login_register.pwn
 
+#define DIALOG_ADD_DF_PL1 41
+#define DIALOG_ADD_DF_PL2 42
+#define DIALOG_ADD_DF_SC1 43
+#define DIALOG_ADD_DF_SC2 44
+#define DIALOG_ADD_DF_YT1 45
+#define DIALOG_ADD_DF_YT2 46
+#define DIALOG_ADD_DF_REF 47
+#define DIALOG_ADD_DF_APPROVE 48
+
 #endif
