@@ -143,9 +143,13 @@ public InitRustlerFireFix()
 
 public AddHydraMissile(playerid, Float:x, Float:y, Float:z, Float:maximumX, Float:maximumY, Float:maximumZ, hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo])
 {
+	#if DEBUG_MODE_FIREFIX == true
 	printf("AddHydraMissile(%d [%.2f;%.2f;%.2f] [%.2f;%.2f;%.2f]", playerid, x, y, z, maximumX, maximumY, maximumZ);
+	#endif
 	new slotIndex = FindMissileFreeSlot(playerid, hydraMissiles);
+	#if DEBUG_MODE_FIREFIX == true
 	printf("slotIndex: %d", slotIndex);
+	#endif
 	hydraMissiles[slotIndex][hydraMissileLaunchPositionX] = x;
 	hydraMissiles[slotIndex][hydraMissileLaunchPositionY] = y;
 	hydraMissiles[slotIndex][hydraMissileLaunchPositionZ] = z;
@@ -154,7 +158,9 @@ public AddHydraMissile(playerid, Float:x, Float:y, Float:z, Float:maximumX, Floa
 	hydraMissiles[slotIndex][hydraMissileFinalPositionZ] = maximumZ;
 	hydraMissiles[slotIndex][hydraMissileIteration] = 0;
 	hydraMissiles[slotIndex][ownerid] = playerid;
+	#if DEBUG_MODE_FIREFIX == true
 	printf("Missile created at slot: %d owner: %d", slotIndex, hydraMissiles[slotIndex][ownerid]);
+	#endif
 	return slotIndex;
 }
 
@@ -363,13 +369,17 @@ stock SendBulletSync(playerid, victimid, data[PR_BulletSync])
 #include "dogfighters/vehicle/vehicleMain.pwn"
 stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
+	#if DEBUG_MODE_FIREFIX == true
 	printf("GiveVehicleDamage: [%d] %s (%d) from %s (%d) - dmg:%.2f rsn:%d", vehicleid, serverPlayers[targetid][name], targetid, serverPlayers[damagerid][name], damagerid, damage, reason);
-    new Float:vehiclehealth = 1000;
+    #endif
+	new Float:vehiclehealth = 1000;
     if (!GetVehicleHealth(vehicleid, vehiclehealth))
         return 0;
     if (vehiclehealth - RUSTLER_DAMAGE_VEHICLES < 100 && vehiclehealth > 0)
     {
+		#if DEBUG_MODE_FIREFIX == true
 		printf("VehicleHealth < 100");
+		#endif
         new Float:targetX, Float:targetY, Float:targetZ;
         GetVehiclePos(vehicleid, targetX, targetY, targetZ);
 
@@ -388,7 +398,9 @@ stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage, reason, se
 				!IsPlayerConnected(driverAndPassengers[i] || 
 				!ServerPlayerIsFireFix(driverAndPassengers[i], serverPlayers)) /*|| driverAndPassengers[i] == killerid*/)
 				continue;
+			#if DEBUG_MODE_FIREFIX == true
 			printf("Player %s (%d) was in vehicle and will be killed by %s (%d) now", serverPlayers[i][name], i, serverPlayers[damagerid][name], damagerid);
+			#endif
 			ForcePlayerDeath(driverAndPassengers[i], damagerid, 14, serverPlayers);
 		}
 
@@ -401,7 +413,9 @@ stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage, reason, se
 	}
 	else
 	{
+		#if DEBUG_MODE_FIREFIX == true
 		printf("VehicleHealth > 150");
+		#endif
 	    SetVehicleHealth(vehicleid, vehiclehealth - damage);
 		GivePlayerDamage(targetid, damagerid, damage * 0.1, reason, serverPlayers);
 	    /*SetPVarInt(targetid, "Hit", damagerid);
@@ -414,7 +428,9 @@ stock GiveVehicleDamage(vehicleid, targetid, damagerid, Float:damage, reason, se
 
 stock GivePlayerDamage(playerid, damagerid, Float:damage, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])  // Can rewrite with your GivePlayerDamage (OnFoot) logic here
 {
+	#if DEBUG_MODE_FIREFIX == true
 	printf("\nGivePlayerDamage: %s (%d) - Damage: %d from %s %d\n", serverPlayers[playerid][name], playerid, damage, serverPlayers[damagerid][name], damagerid);
+	#endif
 	new Float:health, Float:armour;
 	if (!GetPlayerHealth(playerid, health))
 	    return;

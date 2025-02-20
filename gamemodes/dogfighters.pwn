@@ -526,8 +526,8 @@ public OnRustlerFiring(playerid, vehicleid)
 	    KillFiringTimer(playerid);
 	    return;
 	}
-	#if DEBUG_MODE == true
-    //printf("\n------------\n\n\nRustler fire from id: %d", playerid);
+	#if DEBUG_MODE_FIREFIX == true
+    printf("\n------------\n\n\nRustler fire from id: %d", playerid);
     #endif
     if (!IsPlayerInAnyVehicle(playerid))
 		KillFiringTimer(playerid);
@@ -551,7 +551,7 @@ public OnRustlerFiring(playerid, vehicleid)
 		new Float:targetX, Float:targetY, Float:targetZ;
 		if (!GetPlayerPos(targetid, targetX, targetY, targetZ))
 		{
-		    #if DEBUG_MODE == true
+		    #if DEBUG_MODE_FIREFIX == true
 		    printf("bad target %d", targetid);
 		    #endif
 
@@ -560,7 +560,7 @@ public OnRustlerFiring(playerid, vehicleid)
 
 		if (CA_RayCastLine(vehPositionX, vehPositionY, vehPositionZ, targetX, targetY, targetZ, castX, castY, castZ) != 0)
         {
-            #if DEBUG_MODE == true
+            #if DEBUG_MODE_FIREFIX == true
 			printf("!!![COLLISION FOUND: %.2f %.2f %.2f] (Player %d is behind the object)", castX, castY, castZ, targetid);
 			#endif
 
@@ -584,7 +584,7 @@ public OnRustlerFiring(playerid, vehicleid)
 		if (IsPlayerInAnyVehicle(targetid))
 		{
 			new targetvehicleid = GetPlayerVehicleID(targetid);
-			#if DEBUG_MODE == true
+			#if DEBUG_MODE_FIREFIX == true
 		    printf("%d damaged vehicle: %d(player: %d)", playerid, targetvehicleid, targetid);
 		    #endif
 
@@ -600,7 +600,7 @@ public OnRustlerFiring(playerid, vehicleid)
 		}
 		else
 		{
-		    #if DEBUG_MODE == true
+		    #if DEBUG_MODE_FIREFIX == true
 		    printf("%d damaged player: %d", playerid, targetid);
 		    #endif
 		    new Float:playerhealth = 100;
@@ -616,7 +616,7 @@ public OnRustlerFiring(playerid, vehicleid)
 		}
 	}
 	//	KillFiringTimer(playerid, 0);
-	#if DEBUG_MODE == true
+	#if DEBUG_MODE_FIREFIX == true
     printf("---------");
     #endif
 }

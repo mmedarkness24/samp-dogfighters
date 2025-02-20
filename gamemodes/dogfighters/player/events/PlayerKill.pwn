@@ -2,6 +2,7 @@
 #define EVENTS_PLAYER_KILL
 #include "dogfighters\server\serverInfo\serverMain.pwn"
 #include "dogfighters\player\localization\PlayerLanguage.pwn"
+#include "dogfighters\database\databaseMain.pwn"
 
 forward ProcessPlayerKill(playerid, victimid, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 forward AddPlayerKills(playerid, amount, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
@@ -9,6 +10,8 @@ forward AddPlayerKills(playerid, amount, serverPlayers[MODE_MAX_PLAYERS][serverP
 public ProcessPlayerKill(playerid, victimid, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
 	AddPlayerKills(playerid, 1, serverPlayers);
+	if (playerid != victimid)
+		LoginSystem_OnPlayerDeath(NOTSET, playerid, NOTSET, serverPlayers);
 	
 	new message[MAX_PLAYER_NAME + 128];
 	if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)

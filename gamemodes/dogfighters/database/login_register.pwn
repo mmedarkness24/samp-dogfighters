@@ -211,20 +211,30 @@ public LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inpu
 
 public LoginSystem_OnPlayerDeath(playerid, killerid, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
-	new namePlayer[MAX_PLAYER_NAME + 1], SQLRow:	rowid;
+	new namePlayer[MAX_PLAYER_NAME + 1], SQLRow: rowid;
 	
-	if (killerid != INVALID_PLAYER_ID)
+	if (killerid != INVALID_PLAYER_ID && killerid >= 0)
 	{
 	    //save killerid's kills
 		GetPlayerName(killerid, namePlayer, MAX_PLAYER_NAME + 1);
-		
+		rowid = yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", namePlayer);
+		if (rowid == 0)
+		{
+			printf("Cannot add kill to player %s (%d) - not found in database (%d)", namePlayer, killerid, rowid);
+			return 1;
+		}
 		yoursql_set_field_int(SQL:0, LOGIN_PASS_TBL_USRKILLS_SML, rowid, yoursql_get_field_int(SQL:0, LOGIN_PASS_TBL_USRKILLS_SML, rowid) + 1);//add 1 to killer kills
 	}
-
+	if (playerid < 0)
+		return 1;
 	//save playerid's deaths
 	GetPlayerName(playerid, namePlayer, MAX_PLAYER_NAME + 1);
-	
+	rowid = yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", namePlayer);
+	if (rowid == 0)
+	{
+		printf("Cannot add death to player %s (%d) - not found in database (%d)", namePlayer, playerid, rowid);
+		return 1;
+	}
 	yoursql_set_field_int(SQL:0, LOGIN_PASS_TBL_USRDEATHS_SML, rowid, yoursql_get_field_int(SQL:0, LOGIN_PASS_TBL_USRDEATHS_SML, rowid) + 1);//add 1 to player deaths
-
 	return 1;
 }
