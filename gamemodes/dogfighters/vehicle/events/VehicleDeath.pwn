@@ -41,7 +41,7 @@ public ProcessVehicleDeath(vehicleid, killerid, serverPlayers[MODE_MAX_PLAYERS][
 		printf("Player %s (%d) was in vehicle and will be killed by %s (%d) now", serverPlayers[i][name], i, serverPlayers[killerid][name], killerid);
 		ForcePlayerDeath(driverAndPassengers[i], killerid, 14, serverPlayers);
 	}*/
-	destroyPlayerVehicle(vehicleOwnerID, serverPlayers);
+	//destroyPlayerVehicle(vehicleOwnerID, serverPlayers);
 	//ServerPlayerResetVehicle(vehicleOwnerID, serverPlayers);
 	CreateExplosion(x, y, z, 3, 10);
 	//DestroyVehicle(vehicleid);
