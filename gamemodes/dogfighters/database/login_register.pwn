@@ -14,6 +14,7 @@ forward LoginSystem_OnPlayerConnect(playerid, serverPlayers[MODE_MAX_PLAYERS][se
 forward LoginSystem_OnPlayerDisconnect(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 forward LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inputtext[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 forward LoginSystem_OnPlayerDeath(playerid, killerid, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+forward LoginSystem_OnChangePassword(playerid, password[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 
 public OnLoginSystemInit()
 {
@@ -205,6 +206,11 @@ public LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inpu
 				ServerPlayerSetLoggedIn(playerid, true, serverPlayers);
 		    }
 		}
+		case DIALOG_ID_CHANGEPWD:
+		{
+			if (response)
+				LoginSystem_OnChangePassword(playerid, inputtext, serverPlayers);
+		}
 	}
 
 	return 1;
@@ -219,9 +225,9 @@ public LoginSystem_OnPlayerDeath(playerid, killerid, reason, serverPlayers[MODE_
 	    //save killerid's kills
 		GetPlayerName(killerid, namePlayer, MAX_PLAYER_NAME + 1);
 		rowid = yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", namePlayer);
-		if (rowid == 0)
+		if (!rowid)
 		{
-			printf("Cannot add kill to player %s (%d) - not found in database (%d)", namePlayer, killerid, rowid);
+			printf("Cannot add kill to player %s (%d) - not found in database (%d)", namePlayer, killerid, int:rowid);
 			return 1;
 		}
 		yoursql_set_field_int(SQL:0, LOGIN_PASS_TBL_USRKILLS_SML, rowid, yoursql_get_field_int(SQL:0, LOGIN_PASS_TBL_USRKILLS_SML, rowid) + 1);//add 1 to killer kills
@@ -231,11 +237,42 @@ public LoginSystem_OnPlayerDeath(playerid, killerid, reason, serverPlayers[MODE_
 	//save playerid's deaths
 	GetPlayerName(playerid, namePlayer, MAX_PLAYER_NAME + 1);
 	rowid = yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", namePlayer);
-	if (rowid == 0)
+	if (!rowid)
 	{
-		printf("Cannot add death to player %s (%d) - not found in database (%d)", namePlayer, playerid, rowid);
+		printf("Cannot add death to player %s (%d) - not found in database (%d)", namePlayer, playerid, int:rowid);
 		return 1;
 	}
 	yoursql_set_field_int(SQL:0, LOGIN_PASS_TBL_USRDEATHS_SML, rowid, yoursql_get_field_int(SQL:0, LOGIN_PASS_TBL_USRDEATHS_SML, rowid) + 1);//add 1 to player deaths
 	return 1;
+}
+
+public LoginSystem_OnChangePassword(playerid, password[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+{
+	if (!password[0], strlen(password) < 4 || strlen(password) > 50)
+	{
+		if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+			SendClientMessage(playerid, 0xFF0000FF, "ERROR: Your password must be between 4 - 50 characters.");//give warning message and reshow the dialog
+		else
+			SendClientMessage(playerid, 0xFF0000FF, "Ошибка: Пароль ограничен 4 - 50 символами.");//give warning message and reshow the dialog
+		return;
+	}
+	new namePlayer[MAX_PLAYER_NAME + 1], SQLRow: rowid;
+	GetPlayerName(playerid, namePlayer, MAX_PLAYER_NAME + 1);
+	rowid = yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", namePlayer);
+	if (!rowid)
+	{
+		printf("Cannot change password for player %s (%d) - not found in database (%d)", namePlayer, playerid, int:rowid);
+		return;
+	}
+
+	new passwordHashed[128];
+	SHA256_PassHash(password, LOGIN_PASS_SALT, passwordHashed, sizeof(passwordHashed));
+	yoursql_set_field(SQL:0, LOGIN_PASS_TBL_USRPASS_SML, yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", namePlayer), passwordHashed);//set the password
+
+	if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+		format(passwordHashed, sizeof(passwordHashed), "[/password]: Password has successfully changed!");
+	else
+		format(passwordHashed, sizeof(passwordHashed), "[/password]: Пароль успешно изменён!");
+	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, passwordHashed);
+	return;
 }

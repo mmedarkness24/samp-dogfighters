@@ -316,6 +316,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	dcmd(car,3,cmdtext);
 	
 	dcmd(firefix, 7, cmdtext);
+	
+	dcmd(password, 8, cmdtext);
+	dcmd(pass, 4, cmdtext);
 
 	if (ServerPlayerIsInPvp(playerid, _serverPlayers))
 	{
@@ -375,6 +378,16 @@ dcmd_car(playerid, const params[])
 dcmd_firefix(playerid, const params[])
 {
 	return CommandFireFix(playerid, params, _serverPlayers);
+}
+
+dcmd_password(playerid, const params[])
+{
+	return CommandChangePassword(playerid, params, _serverPlayers);
+}
+
+dcmd_pass(playerid, const params[])
+{
+	return dcmd_password(playerid, params);
 }
 
 dcmd_heal(playerid, const params[])
