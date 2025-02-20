@@ -443,7 +443,7 @@ stock GivePlayerDamage(playerid, damagerid, Float:damage, reason, serverPlayers[
 	    if (damage <= 0)
 	        return;
 	}
-	if (health - damage <= 0)   //  Do "player kill" logic
+	if (health - damage <= 0 && GetPVarInt(playerid, "Death") == 0)   //  Do "player kill" logic
 	{
 	    //SendDeathMessage(damagerid, playerid, RUSTLER_WEAPON_ID);
 	    ////playerDeathplayerid] = damagerid;

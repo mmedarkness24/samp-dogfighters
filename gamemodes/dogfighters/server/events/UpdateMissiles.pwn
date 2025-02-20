@@ -7,7 +7,7 @@
 #include <math>
 
 #include "dogfighters\server\serverInfo\serverMain.pwn"
-#include "dogfighters\vehicle\tools\rustlerFireFix.pwn"
+#include "dogfighters\vehicle\tools\FireFix.pwn"
 
 forward OnHydraUpdateMissiles(hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo], serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 forward HydraCheckMissileStatus(missileIndex, hydraMissiles[MODE_MAX_PLAYERS * MISSILES_SHELLS_MAX_COUNT][hydraMissileInfo]);
