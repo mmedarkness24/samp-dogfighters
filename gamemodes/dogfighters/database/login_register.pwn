@@ -61,7 +61,7 @@ public LoginSystem_OnPlayerConnect(playerid, serverPlayers[MODE_MAX_PLAYERS][ser
 	if (rowid != SQL_INVALID_ROW)//if registered
 	{
 		if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-			ShowPlayerDialog(playerid, DIALOG_ID_LOGIN, DIALOG_STYLE_PASSWORD, "User Accounts:", "\t\t     You are registered\t\t\n·\t\tplease insert your password to continue:\t\t·", "Login", "Exit");
+			ShowPlayerDialog(playerid, DIALOG_ID_LOGIN, DIALOG_STYLE_PASSWORD, "User Accounts:", "\t\t\t     You are registered\t\t\n·\t\tplease insert your password to continue:\t\t·", "Login", "Exit");
 		else
 			ShowPlayerDialog(playerid, DIALOG_ID_LOGIN, DIALOG_STYLE_PASSWORD, "Аккаунт:", "\t\t     Ваш ник зарегистрирован!\t\t\n·\t\tВведите пароль для продолжения:\t\t    ·", "Логин", "Выйти");
 	    
@@ -69,7 +69,7 @@ public LoginSystem_OnPlayerConnect(playerid, serverPlayers[MODE_MAX_PLAYERS][ser
 	else//if new user
 	{
 		if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-			ShowPlayerDialog(playerid, DIALOG_ID_REGISTER, DIALOG_STYLE_PASSWORD, "User Accounts:", "\t\tYou are not recognized on the database\t\t\n·\t\tplease insert a password to sing-in and continue:\t\t·", "Register", "Exit");
+			ShowPlayerDialog(playerid, DIALOG_ID_REGISTER, DIALOG_STYLE_PASSWORD, "User Accounts:", "\t\t        You are not recognized on the database\t\t\n·\t\tplease insert a password to sing-in and continue:\t\t·", "Register", "Exit");
 		else
 			ShowPlayerDialog(playerid, DIALOG_ID_REGISTER, DIALOG_STYLE_PASSWORD, "Аккаунт:", "\t\tВы ещё не зарегистрированы на данном сервере!\n·\t\t\tВведите пароль для регистрации:\t\t\t·", "Ввод", "Выйти");
 	}
@@ -114,7 +114,7 @@ public LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inpu
 						return ShowPlayerDialog(playerid, 
 												DIALOG_ID_REGISTER, 
 												DIALOG_STYLE_PASSWORD, 
-												"User Accounts:", "\t\tYou are not recognized on the database\t\t\n·\t\tplease insert a password to sing-in and continue:\t\t·", 
+												"User Accounts:", "\t\t        You are not recognized on the database\t\t\n·\t\tplease insert a password to sing-in and continue:\t\t·", 
 												"Register", 
 												"Exit");
 					else
@@ -186,7 +186,7 @@ public LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inpu
 						return ShowPlayerDialog(playerid, 
 												DIALOG_ID_LOGIN, DIALOG_STYLE_PASSWORD, 
 												"User Accounts:", 
-												"\t\tYou entered wrong password\t\t\n·\t\tplease insert your password to continue or create a new account by changing your nickname:\t\t·", 
+												"\t\t\t     You entered wrong password\t\t\n\t\t          please insert your password to continue\n·\t\tor create a new account by changing your nickname:\t\t·", 
 												"Login", 
 												"Exit");
 					else
@@ -270,7 +270,7 @@ public LoginSystem_OnChangePassword(playerid, password[], serverPlayers[MODE_MAX
 	yoursql_set_field(SQL:0, LOGIN_PASS_TBL_USRPASS_SML, yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", namePlayer), passwordHashed);//set the password
 
 	if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-		format(passwordHashed, sizeof(passwordHashed), "[/password]: Password has successfully changed!");
+		format(passwordHashed, sizeof(passwordHashed), "[/password]: Password was successfully changed!");
 	else
 		format(passwordHashed, sizeof(passwordHashed), "[/password]: Пароль успешно изменён!");
 	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, passwordHashed);
