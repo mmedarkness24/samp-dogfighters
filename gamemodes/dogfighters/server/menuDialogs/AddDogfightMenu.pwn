@@ -1,5 +1,7 @@
 #if !defined ADD_DOGFIGHT_DIALOG
 #define ADD_DOGFIGHT_DIALOG
+
+#define DEBUG_MODE_DF_MENU true
 #define DF_MENU_ERROR_ID -2
 
 #include "dogfighters\server\serverInfo\serverMain.pwn"
@@ -25,7 +27,7 @@ forward processScore2Dialog(playerid, response, inputtext[], serverPlayers[MODE_
 forward processYouTube1Dialog(playerid, response, inputtext[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo]);
 forward processYouTube2Dialog(playerid, response, inputtext[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo]);
 forward processRefereeDialog(playerid, response, inputtext[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo]);
-forward processSummaryDialog(playerid, response, inputtext[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo]);
+forward processSummaryDialog(playerid, response, listitem, serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo]);
 
 public showAddDFDialog_Player1(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo])
 {
@@ -33,10 +35,9 @@ public showAddDFDialog_Player1(playerid, serverPlayers[MODE_MAX_PLAYERS][serverP
     {
         if (IsPlayerConnected(dfInfo[usedBy]) && serverPlayers[dfInfo[usedBy]][isLoggedIn])
         {
-            printf("Player %s (%d) was trying to use /savedf when it was used by %s (%d)", 
+            printf("Player %s (%d) was trying to use /savedf when it was used by %d", 
                                                                                         serverPlayers[playerid][name], 
                                                                                         playerid,
-                                                                                        serverPlayers[dfInfo[usedBy]][name],
                                                                                         serverPlayers[usedBy]);
             if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
                 SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Dogfight adding panel is beasy at this moment. Try again later.");
@@ -101,53 +102,125 @@ public showAddDFDialog_Referee(playerid, serverPlayers[MODE_MAX_PLAYERS][serverP
     if (isDFPanelBeasy(playerid, serverPlayers, dfInfo))
         return;
     if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-        ShowPlayerDialog(playerid, DIALOG_ADD_DF_YT2, DIALOG_STYLE_INPUT, "Dogfight - Referee", "Enter referee player ID or -1 if it was\n\"no-referee\" match:", "Set", "Back");
+        ShowPlayerDialog(playerid, DIALOG_ADD_DF_REF, DIALOG_STYLE_INPUT, "Dogfight - Referee", "Enter referee player ID or -1 if it was\n\"no-referee\" match:", "Set", "Back");
     else
-        ShowPlayerDialog(playerid, DIALOG_ADD_DF_YT2, DIALOG_STYLE_INPUT, "Dogfight - Судейство", "Введите ID рефери, либо -1 (если играли без рефери)\nв поле ниже:", "Ок", "Назад");
+        ShowPlayerDialog(playerid, DIALOG_ADD_DF_REF, DIALOG_STYLE_INPUT, "Dogfight - Судейство", "Введите ID рефери, либо -1 (если играли без рефери)\nв поле ниже:", "Ок", "Назад");
 }
 
 public showAddDFDialog_Summary(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo])
 {
+    #if DEBUG_MODE_DF_MENU == true
+    printf("showAddDFDialog_Summary %d %d", playerid, isDFPanelBeasy(playerid, serverPlayers, dfInfo));
+    #endif
+
     if (isDFPanelBeasy(playerid, serverPlayers, dfInfo))
         return;
-    new message[256];
-    format(message, sizeof(message), "Dogfight:\n%s (%d) [%d vs %d] %s (%d)\nReferee: id%d",
-                                                                                        serverPlayers[dfInfo[player1ID]][name],
-                                                                                        dfInfo[player1ID],
-                                                                                        dfInfo[player1Score],
-                                                                                        dfInfo[player2Score],
-                                                                                        serverPlayers[dfInfo[player2ID]][name],
-                                                                                        dfInfo[player2ID],
-                                                                                        refereeID);
-    if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)                                                                               
-        ShowPlayerDialog(playerid, DIALOG_ADD_DF_APPROVE, DIALOG_STYLE_MSGBOX, "Dogfight - Summary", message, "Approve", "Back");
+    new message[512];
+    #if DEBUG_MODE_DF_MENU == true
+    printf("[121] showAddDFDialog_Summary");
+    #endif
+        
+    if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH) 
+    {                                  
+        SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Fields starting with '>' are neccessary, with '*' - optional");                   
+        format(message, sizeof(message), ">Player1: %d\n\
+                                        >Score player1: %d\n\
+                                        >Player 2: %d\n\
+                                        >Score player 2: %d\n\
+                                        *Video link 1: %s\n\
+                                        *Video link 2: %s\n\
+                                        *Referee: %d\
+                                        {00FF00}Save dogfight results",
+                                                        dfInfo[player1ID],
+                                                        dfInfo[player1Score],
+                                                        dfInfo[player2ID],
+                                                        dfInfo[player2Score],
+                                                        dfInfo[videoPlayer1],
+                                                        dfInfo[videoPlayer2],
+                                                        dfInfo[refereeID]);                        
+        ShowPlayerDialog(playerid, DIALOG_ADD_DF_APPROVE, DIALOG_STYLE_LIST, "Dogfight - Summary", message, "Change", "Exit");
+    }
     else
-        ShowPlayerDialog(playerid, DIALOG_ADD_DF_APPROVE, DIALOG_STYLE_MSGBOX, "Dogfight - Итого", message, "Сохранить", "Назад");
+    { 
+        SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Поля, начинающиеся с '>' - обязательные, с '*' - опциональные");
+        format(message, sizeof(message), "{FFAA00}>Игрок 1:{FFFFFF}ID:%d\n\
+                                        {FF9900}>Очки игрока 1:{FFFFFF}%d\n\
+                                        {FF9900}>Игрок 2:{FFFFFF}ID:%d\n\
+                                        {FF9900}>Очки игрока 2:{FFFFFF}%d\n\
+                                        {FFFF00}*Ссылка на видео 1:{FFFFFF}%s\n\
+                                        {FFFF00}*Ссылка на видео 2:{FFFFFF}%s\n\
+                                        {FFFF00}*Судья:{FFFFFF}ID:%d\n\
+                                        {00FF00}Сохранить результаты догфайта",
+                                                        dfInfo[player1ID],
+                                                        dfInfo[player1Score],
+                                                        dfInfo[player2ID],
+                                                        dfInfo[player2Score],
+                                                        dfInfo[videoPlayer1],
+                                                        dfInfo[videoPlayer2],
+                                                        dfInfo[refereeID]);
+        ShowPlayerDialog(playerid, DIALOG_ADD_DF_APPROVE, DIALOG_STYLE_LIST, "Dogfight - общие сведения", message, "Изменить", "Выход");
+    }
+    #if DEBUG_MODE_DF_MENU == true
+    printf("[167] showAddDFDialog_Summary");
+    #endif
 }
 
 
 public processPlayer1Dialog(playerid, response, inputtext[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo])
 {
+    #if DEBUG_MODE_DF_MENU == true
+    printf("ProcessPlayer1Dialog");
+    #endif
     if (!response)
     {
         dfInfo[usedBy] = NOTSET;
+        if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Dogfight info adding cancelled");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Добавление информации о догфайте отменено");
         return 1;
     }
     new value = validateNumberInput(playerid, inputtext);
-    if (value == DF_MENU_ERROR_ID)
+    if (value == DF_MENU_ERROR_ID || value == NOTSET)
     {
+        if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Error: bad input");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Ошибка: некорректный ввод");
+        showAddDFDialog_Player1(playerid, serverPlayers, dfInfo);
+        return 1;
+    }
+    if (!IsPlayerConnected(value))
+    {
+        if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Error: player is not connected");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Ошибка: игрок с таким ID не подключен к серверу");
+        showAddDFDialog_Player1(playerid, serverPlayers, dfInfo);
+        return 1;
+    }
+    if (value == dfInfo[player2ID])
+    {
+        if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Error: both players cannot be the same");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Ошибка: игрок летал против самого себя?");
         showAddDFDialog_Player1(playerid, serverPlayers, dfInfo);
         return 1;
     }
     dfInfo[player1ID] = value;
-    showAddDFDialog_Player2(playerid, serverPlayers, dfInfo);
+    showAddDFDialog_Summary(playerid, serverPlayers, dfInfo);
+
+    #if DEBUG_MODE_DF_MENU == true
+    printf("showAddDFDialog_Player2(%d)", playerid);
+    #endif
     return 1;
 }
 public processPlayer2Dialog(playerid, response, inputtext[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo])
 {
     if (!response)
     {
-        showAddDFDialog_Player1(playerid, serverPlayers, dfInfo);
+        showAddDFDialog_Summary(playerid, serverPlayers, dfInfo);
         return 1;
     }
     new value = validateNumberInput(playerid, inputtext);
@@ -156,15 +229,33 @@ public processPlayer2Dialog(playerid, response, inputtext[], serverPlayers[MODE_
         showAddDFDialog_Player2(playerid, serverPlayers, dfInfo);
         return 1;
     }
+    if (!IsPlayerConnected(value))
+    {
+        if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Error: player is not connected");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Ошибка: игрок с таким ID не подключен к серверу");
+        showAddDFDialog_Player2(playerid, serverPlayers, dfInfo);
+        return 1;
+    }
+    if (value == dfInfo[player1ID])
+    {
+        if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Error: both players cannot be the same");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Ошибка: игрок летал против самого себя?");
+        showAddDFDialog_Player2(playerid, serverPlayers, dfInfo);
+        return 1;
+    }
     dfInfo[player2ID] = value;
-    showAddDFDialog_Score1(playerid, serverPlayers, dfInfo);
+    showAddDFDialog_Summary(playerid, serverPlayers, dfInfo);
     return 1;
 }
 public processScore1Dialog(playerid, response, inputtext[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo])
 {
     if (!response)
     {
-        showAddDFDialog_Player2(playerid, serverPlayers, dfInfo);
+        showAddDFDialog_Summary(playerid, serverPlayers, dfInfo);
         return 1;
     }
     new value = validateNumberInput(playerid, inputtext);
@@ -173,15 +264,24 @@ public processScore1Dialog(playerid, response, inputtext[], serverPlayers[MODE_M
         showAddDFDialog_Score1(playerid, serverPlayers, dfInfo);
         return 1;
     }
+    if (value < 0 || value > 10)
+    {
+        if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Error: score value can be only between 0 and 10");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Ошибка: счёт может быть только в пределах от 0 до 10");
+        showAddDFDialog_Score1(playerid, serverPlayers, dfInfo);
+        return 1;
+    }
     dfInfo[player1Score] = value;
-    showAddDFDialog_Score2(playerid, serverPlayers, dfInfo);
+    showAddDFDialog_Summary(playerid, serverPlayers, dfInfo);
     return 1;
 }
 public processScore2Dialog(playerid, response, inputtext[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo])
 {
     if (!response)
     {
-        showAddDFDialog_Score1(playerid, serverPlayers, dfInfo);
+        showAddDFDialog_Summary(playerid, serverPlayers, dfInfo);
         return 1;
     }
     new value = validateNumberInput(playerid, inputtext);
@@ -190,64 +290,158 @@ public processScore2Dialog(playerid, response, inputtext[], serverPlayers[MODE_M
         showAddDFDialog_Score2(playerid, serverPlayers, dfInfo);
         return 1;
     }
+    if (value < 0 || value > 10)
+    {
+        if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Error: score value can be only between 0 and 10");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Ошибка: счёт может быть только в пределах от 0 до 10");
+        showAddDFDialog_Score2(playerid, serverPlayers, dfInfo);
+        return 1;
+    }
     dfInfo[player2Score] = value;
-    showAddDFDialog_YouTube1(playerid, serverPlayers, dfInfo);
+    showAddDFDialog_Summary(playerid, serverPlayers, dfInfo);
     return 1;
 }
 public processYouTube1Dialog(playerid, response, inputtext[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo])
 {
     if (!response)
     {
-        showAddDFDialog_Score2(playerid, serverPlayers, dfInfo);
+        showAddDFDialog_Summary(playerid, serverPlayers, dfInfo);
         return 1;
     }
-    if (validateNumberInput(playerid, inputtext) == DF_MENU_ERROR_ID)
-    {
-        showAddDFDialog_YouTube1(playerid, serverPlayers, dfInfo);
-        return 1;
-    }
+    sscanf(inputtext, "s[127]", dfInfo[videoPlayer1]);
+    showAddDFDialog_Summary(playerid, serverPlayers, dfInfo);
     return 1;
 }
 public processYouTube2Dialog(playerid, response, inputtext[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo])
 {
     if (!response)
     {
-        showAddDFDialog_YouTube1(playerid, serverPlayers, dfInfo);
+        showAddDFDialog_Summary(playerid, serverPlayers, dfInfo);
         return 1;
     }
-    if (validateNumberInput(playerid, inputtext) == DF_MENU_ERROR_ID)
-    {
-        showAddDFDialog_YouTube2(playerid, serverPlayers, dfInfo);
-        return 1;
-    }
+    sscanf(inputtext, "s[127]", dfInfo[videoPlayer2]);
+    showAddDFDialog_Summary(playerid, serverPlayers, dfInfo);
     return 1;
 }
 public processRefereeDialog(playerid, response, inputtext[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo])
 {
+    #if DEBUG_MODE_DF_MENU == true
+    printf("processRefereeDialog: %d (%s)", playerid, inputtext);
+    #endif
     if (!response)
-    {
-        showAddDFDialog_YouTube2(playerid, serverPlayers, dfInfo);
-        return 1;
-    }
-    if (validateNumberInput(playerid, inputtext) == DF_MENU_ERROR_ID)
-    {
-        showAddDFDialog_Referee(playerid, serverPlayers, dfInfo);
-        return 1;
-    }
-    return 1;
-}
-
-public processSummaryDialog(playerid, response, inputtext[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo])
-{
-    if (!response)
-    {
-        showAddDFDialog_Referee(playerid, serverPlayers, dfInfo);
-        return 1;
-    }
-    if (validateNumberInput(playerid, inputtext) == DF_MENU_ERROR_ID)
     {
         showAddDFDialog_Summary(playerid, serverPlayers, dfInfo);
         return 1;
+    }
+    new value = strval(inputtext);
+    if (value < -1 || value > MODE_MAX_PLAYERS)
+    {
+        if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Error: wrong input");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Ошибка: неверный ввод");
+        showAddDFDialog_Referee(playerid, serverPlayers, dfInfo);
+        return 1;
+    }
+    if (!IsPlayerConnected(value) && value != NOTSET)
+    {
+        if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Error: player is not connected!");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Ошибка: игрока с таким ID нет на сервере");
+        showAddDFDialog_Referee(playerid, serverPlayers, dfInfo);
+        return 1;
+    }
+    dfInfo[refereeID] = value;
+    #if DEBUG_MODE_DF_MENU == true
+    printf("referee value set to: %d (value: %d)", dfInfo[refereeID], value);
+    #endif
+    showAddDFDialog_Summary(playerid, serverPlayers, dfInfo);
+    return 1;
+}
+
+public processSummaryDialog(playerid, response, listitem, serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo])
+{
+    /*Player1:%s (%d)\nScore player1:%d\nPlayer 2:%s (%d)\nScore player 2:%d\nReferee: id%d*/
+    if (!response)
+    {
+        if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Dogfight saving cancelled");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Формирование отчёта о догфайте отменено");
+        ResetDogfightInfo(dfInfo);
+        return 1;
+    }
+    switch (listitem)
+    {
+        case 0:
+        {
+            showAddDFDialog_Player1(playerid, serverPlayers, dfInfo);
+        }
+        case 1:
+        {
+            showAddDFDialog_Score1(playerid, serverPlayers, dfInfo);
+        }
+        case 2:
+        {
+            showAddDFDialog_Player2(playerid, serverPlayers, dfInfo);
+        }
+        case 3:
+        {
+            showAddDFDialog_Score2(playerid, serverPlayers, dfInfo);
+        }
+        case 4:
+        {
+            showAddDFDialog_YouTube1(playerid, serverPlayers, dfInfo);
+        }
+        case 5:
+        {
+            showAddDFDialog_YouTube2(playerid, serverPlayers, dfInfo);
+        }
+        case 6:
+        {
+            showAddDFDialog_Referee(playerid, serverPlayers, dfInfo);
+        }
+        case 7:
+        {
+            if (dfInfo[player1ID] == NOTSET || 
+            dfInfo[player2ID] == NOTSET || 
+            dfInfo[player1Score] == NOTSET ||
+            dfInfo[player2Score] == NOTSET)
+            {
+                if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+                    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Not all neccessary fields are filled");
+                else
+                    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Заполнены не все обязательные поля!");
+                showAddDFDialog_Summary(playerid, serverPlayers, dfInfo);
+                return 1;
+            }
+            SaveDogfightData(dfInfo, serverPlayers);
+            ResetDogfightInfo(dfInfo);
+            new messageEN[256];
+            new messageRU[256];
+            format(messageEN, sizeof(messageEN), "[ADM]: %s (%d) saved df: %s (%d) [%d:%d] (%d) %s",
+                                                                                                serverPlayers[playerid][name],
+                                                                                                playerid,
+                                                                                                serverPlayers[dfInfo[player1ID]][name],
+                                                                                                dfInfo[player1ID],
+                                                                                                dfInfo[player1Score],
+                                                                                                dfInfo[player2Score],
+                                                                                                dfInfo[player2ID],
+                                                                                                serverPlayers[dfInfo[player2ID]][name]);
+            format(messageRU, sizeof(messageRU), "[ADM]: %s (%d) сохранил дф: %s (%d) [%d:%d] (%d) %s",
+                                                                                                serverPlayers[playerid][name],
+                                                                                                playerid,
+                                                                                                serverPlayers[dfInfo[player1ID]][name],
+                                                                                                dfInfo[player1ID],
+                                                                                                dfInfo[player1Score],
+                                                                                                dfInfo[player2Score],
+                                                                                                dfInfo[player2ID],
+                                                                                                serverPlayers[dfInfo[player2ID]][name]);
+            sendLocalizedMessage(messageRU, messageEN, COLOR_SYSTEM_DISCORD, serverPlayers);
+        }
     }
     return 1;
 }
@@ -279,12 +473,14 @@ stock validateNumberInput(playerid, inputtext[])
 
 stock isDFPanelBeasy(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer], dfInfo[DogfightInfo])
 {
-     if (dfInfo[usedBy] != playerid)
+    #if DEBUG_MODE_DF_MENU == true
+    printf("isDFPanelBeasy %d, [usedBy: %d]", playerid, dfInfo[usedBy]);
+    #endif
+    if (dfInfo[usedBy] != NOTSET && dfInfo[usedBy] != playerid)
     {
-        printf("Player %s (%d) was trying to use /savedf [stage 1+] (he has no rights, current user: %s (%d))", 
+        printf("Player %s (%d) was trying to use /savedf [stage 1+] (he has no rights, current user: (%d))", 
                                                                                         serverPlayers[playerid][name], 
                                                                                         playerid,
-                                                                                        serverPlayers[dfInfo[usedBy]][name],
                                                                                         serverPlayers[usedBy]);
         if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
             SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Dogfight adding panel is beasy at this moment. Try again later.");

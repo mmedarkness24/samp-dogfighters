@@ -111,6 +111,8 @@ public OnPlayerConnect(playerid)
 
 public OnPlayerDisconnect(playerid)
 {
+	if (_dogfightInfo[usedBy] == playerid)
+	    _dogfightInfo[usedBy] = NOTSET;
 	LoginSystem_OnPlayerDisconnect(playerid, _serverPlayers);
 	setPlayerConnectionStatus(playerid, false);
 	return 1;
@@ -279,7 +281,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case DIALOG_ADD_DF_REF:
 		    return processRefereeDialog(playerid, response, inputtext, _serverPlayers, _dogfightInfo);
 		case DIALOG_ADD_DF_APPROVE:
-		    return processSummaryDialog(playerid, response, inputtext, _serverPlayers, _dogfightInfo);
+		    return processSummaryDialog(playerid, response, listitem, _serverPlayers, _dogfightInfo);
    }
    return 0;
 }

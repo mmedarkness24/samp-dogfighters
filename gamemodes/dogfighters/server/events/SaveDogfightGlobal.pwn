@@ -18,6 +18,7 @@ enum DogfightInfo
 }
 
 forward ResetDogfightInfo(dogfightInfo[DogfightInfo]);
+forward SaveDogfightPvpData(winnerID, looserID, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 forward SaveDogfightData(dogfightInfo[DogfightInfo], serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 
 public ResetDogfightInfo(dogfightInfo[DogfightInfo])
@@ -28,6 +29,8 @@ public ResetDogfightInfo(dogfightInfo[DogfightInfo])
     dogfightInfo[refereeID] = NOTSET;
     dogfightInfo[player1Score] = 0;
     dogfightInfo[player2Score] = 0;
+    format(dogfightInfo[videoPlayer1], 128, "");
+    format(dogfightInfo[videoPlayer2], 128, "");
 }
 
 public SaveDogfightData(dogfightInfo[DogfightInfo], serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
@@ -94,6 +97,36 @@ public SaveDogfightData(dogfightInfo[DogfightInfo], serverPlayers[MODE_MAX_PLAYE
     #endif
 }
 
+public SaveDogfightPvpData(winnerID, looserID, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+{
+    new dfInfo[DogfightInfo];
+    dfInfo[player1ID] = winnerID;
+    dfInfo[player2ID] = looserID;
+    dfInfo[refereeID] = NOTSET;
+    dfInfo[player1Score] = serverPlayers[winnerID][pvpscore];
+    dfInfo[player2Score] = serverPlayers[looserID][pvpscore];
+    format(dfInfo[videoPlayer1], 128, "");
+    format(dfInfo[videoPlayer2], 128, "");
+    SaveDogfightData(dfInfo, serverPlayers);
+    new messageEN[64];
+    new messageRU[64];
+    format(messageEN, sizeof(messageEN), "Dogfight results auto-saved: %s (%d) [%d:%d] (%d) %s",
+                                                                                        serverPlayers[dfInfo[player1ID]][name],
+                                                                                        dfInfo[player1ID],
+                                                                                        dfInfo[player1Score],
+                                                                                        dfInfo[player2Score],
+                                                                                        dfInfo[player2ID],
+                                                                                        serverPlayers[dfInfo[player2ID]][name]);
+    format(messageRU, sizeof(messageRU), "Результаты догфайта сохранены: %s (%d) [%d:%d] (%d) %s",
+                                                                                        serverPlayers[dfInfo[player1ID]][name],
+                                                                                        dfInfo[player1ID],
+                                                                                        dfInfo[player1Score],
+                                                                                        dfInfo[player2Score],
+                                                                                        dfInfo[player2ID],
+                                                                                        serverPlayers[dfInfo[player2ID]][name]);
+    sendLocalizedMessage(messageRU, messageEN, COLOR_SYSTEM_DISCORD, serverPlayers);
+}
+
 //  When get request result received
 /*@OnSaveDogfightResult(Request:id, E_HTTP_STATUS:status, Node:node);
 @OnSaveDogfightResult(Request:id, E_HTTP_STATUS:status, Node:node)*/
@@ -101,7 +134,7 @@ public SaveDogfightData(dogfightInfo[DogfightInfo], serverPlayers[MODE_MAX_PLAYE
 @OnSaveDogfightResult(Request:id, E_HTTP_STATUS:status, data[], dataLen)
 {
 	if(status == HTTP_STATUS_OK) {
-        printf("successfully created added Dogfight!");
+        printf("Successfully added Dogfight!");
     }
 }
 
