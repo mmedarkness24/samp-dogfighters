@@ -16,6 +16,7 @@
 #include "dogfighters/server/commands/CommandDecline.pwn"
 #include "dogfighters/server/commands/CommandFireFix.pwn"
 #include "dogfighters/server/commands/CommandChangePassword.pwn"
+#include "dogfighters/server/commands/CommandSaveDogfight.pwn"
 #include "dogfighters/server/commands/CommandHelp.pwn"
 
 #endif

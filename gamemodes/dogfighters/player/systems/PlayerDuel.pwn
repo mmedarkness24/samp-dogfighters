@@ -17,7 +17,7 @@ forward PlayerDuelUpdateTextdraw(playerid, serverPlayers[MODE_MAX_PLAYERS][serve
 
 public PlayerRequestDuel(playerid, targetid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
-    if (serverPlayers[playerid][pvpid] > 0)
+    if (serverPlayers[playerid][pvpid] > NOTSET)
     {
         if (serverPlayers[targetid][language] == PLAYER_LANGUAGE_ENGLISH)
             SendClientMessage(targetid, COLOR_SYSTEM_DISCORD, "[/pvp] This player is already have duel request from someone");
@@ -132,16 +132,19 @@ public PlayerIncreaseDuelScore(playerid, value, serverPlayers[MODE_MAX_PLAYERS][
 public PlayerDuelUpdateTextdraw(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
     new textdrawtext[256];
+    /*new score1 = serverPlayers[playerid][pvpscore] > -1 ? serverPlayers[playerid][pvpscore] : 0;
+    new score2 = serverPlayers[serverPlayers[playerid][pvpid]][pvpscore] > -1 ? serverPlayers[serverPlayers[playerid][pvpid]][pvpscore] : 0;*/
     format(textdrawtext, sizeof(textdrawtext), "~W~%s ~Y~[~G~%d : %d~Y~] ~W~%s", 
         serverPlayers[playerid][name], 
-        serverPlayers[playerid][pvpscore],
-        serverPlayers[serverPlayers[playerid][pvpid]][pvpscore],
+        serverPlayers[playerid][pvpscore] > -1 ? serverPlayers[playerid][pvpscore] : 0,
+        serverPlayers[serverPlayers[playerid][pvpid]][pvpscore] > -1 ? serverPlayers[serverPlayers[playerid][pvpid]][pvpscore] : 0,
         serverPlayers[serverPlayers[playerid][pvpid]][name]);
     PlayerTextDrawSetString(playerid, serverPlayers[playerid][pvptextdraw], textdrawtext);
 }
 
 public PlayerWinDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
+    SaveDogfightPvpData(playerid, serverPlayers[playerid][pvpid], serverPlayers);
     new messageRU[128];
     new messageEN[128];
     format(messageRU, sizeof(messageRU), "Игрок %s (%d) победил в дуэли против %s (%d)", 
@@ -166,10 +169,8 @@ public PlayerStartDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
     ServerPlayerSetPvpScore(playerid, 0, serverPlayers);
     new textdrawtext[256];
-    format(textdrawtext, sizeof(textdrawtext), "~W~%s ~Y~[~G~%d : %d~Y~] ~W~%s", 
-        serverPlayers[playerid][name], 
-        serverPlayers[playerid][pvpscore],
-        serverPlayers[serverPlayers[playerid][pvpid]][pvpscore],
+    format(textdrawtext, sizeof(textdrawtext), "~W~%s ~Y~[~G~0 : 0~Y~] ~W~%s", 
+        serverPlayers[playerid][name],
         serverPlayers[serverPlayers[playerid][pvpid]][name]);
     ServerPlayerSetPvpTextdraw(playerid, CreatePlayerTextDraw(playerid, 25, 315, textdrawtext), serverPlayers);
     PlayerTextDrawFont(playerid, serverPlayers[playerid][pvptextdraw], 3);
@@ -185,7 +186,7 @@ public PlayerStartDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 
 public PlayerSpawnDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
-    new virtualWorld = (MODE_MAX_PLAYERS - playerid) + (MODE_MAX_PLAYERS - serverPlayers[playerid][pvpid]);
+    new virtualWorld = serverPlayers[playerid][pvpid] > playerid ? serverPlayers[playerid][pvpid] : playerid;
     new Float:x, Float:y, Float:z;
     switch(random(10))
     {
@@ -275,12 +276,16 @@ public PlayerSpawnDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
         SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "You're in duel now. Take a vehicle (/car) and fight!");
     else
         SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Вы находитесь в дуэли. Возьмите технику (/car) и сражайтесь!");
-    GivePlayerWeapon(playerid, 35, 3);
+    GivePlayerWeapon(playerid, 35, 31);
     PlayerDuelUpdateTextdraw(playerid, serverPlayers);
 }
 
 public PlayerStopDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
+    new bool:givecash = true;
+    if (serverPlayers[serverPlayers[playerid][pvpid]][pvpid] != playerid && 
+        serverPlayers[serverPlayers[playerid][pvpid]][pvpid] != NOTSET)
+        givecash = false;
     if (serverPlayers[playerid][pvptextdraw] != PlayerText:NOTSET)
         PlayerTextDrawDestroy(playerid, serverPlayers[playerid][pvptextdraw]);
     SetPlayerVirtualWorld(playerid, 0);
@@ -292,7 +297,9 @@ public PlayerStopDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
         RemovePlayerFromVehicle(playerid);
     SetPlayerPos(playerid, 0, 0, 5);
     SpawnPlayer(playerid);
-
+    
+    if (!givecash)
+        return;
     if (!AddPlayerMoney(playerid, 2000, serverPlayers))
         return;
     if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
