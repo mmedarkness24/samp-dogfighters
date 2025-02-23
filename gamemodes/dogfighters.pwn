@@ -324,6 +324,20 @@ public OnPlayerCommandText(playerid, cmdtext[])
             SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "Сначала необходимо залогиниться");
 		return 1;
 	}
+	dcmd(spec, 4, cmdtext);
+	dcmd(specoff, 7, cmdtext);
+	dcmd(unspec, 7, cmdtext);
+	dcmd(uspec, 7, cmdtext);
+	
+	new playerState = GetPlayerState(playerid);
+	if (playerState < PLAYER_STATE_ONFOOT || playerState > PLAYER_STATE_PASSENGER)
+	{
+	    if (_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "You should spawn");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "Сначала необходимо заспавниться");
+		return 1;
+	}
 	dcmd(setlevel, 8, cmdtext);
 	
     dcmd(kill, 4, cmdtext);
@@ -377,11 +391,6 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	dcmd(duel, 4, cmdtext);
 	dcmd(y, 1, cmdtext);
 	dcmd(n, 1, cmdtext);
-	
-	dcmd(spec, 4, cmdtext);
-	dcmd(specoff, 7, cmdtext);
-	dcmd(unspec, 7, cmdtext);
-	dcmd(uspec, 7, cmdtext);
 	
 	dcmd(vt, 2, cmdtext);
 	
@@ -580,23 +589,9 @@ dcmd_help(playerid, const params[])
 
 dcmd_vt(playerid, const params[])
 {
-	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "test");
-	new passengers[4];
-	GetVehicleDriverAndPassengers(_serverPlayers[playerid][vehicleID], passengers[0], passengers[1], passengers[2], passengers[3]);
-	new message[256];
-	for (new i = 0; i < 4; i++)
-	    if(passengers[i] == -1)
-	        passengers[i] = MODE_MAX_PLAYERS - 1;
-	format(message, sizeof(message), "Vehicle passengers. Driver:%s (%d), p1:%s (%d), p2:%s (%d), p3:%s (%d)",
-		_serverPlayers[passengers[0]][name],
-		passengers[0],
-		_serverPlayers[passengers[1]][name],
-	    passengers[1],
-	    _serverPlayers[passengers[2]][name],
-	    passengers[2],
-	    _serverPlayers[passengers[3]][name],
-	    passengers[3]);
-	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, message);
+	if (LoginSystem_GetAccessLevel(playerid, _serverPlayers) < 4)
+	    return 0;
+	AddPlayerMoney(playerid, 10000, _serverPlayers);
 	return 1;
 }
 

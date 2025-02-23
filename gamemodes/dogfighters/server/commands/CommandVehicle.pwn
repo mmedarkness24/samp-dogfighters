@@ -31,6 +31,18 @@ public CommandGivePlayerVehicle(playerid, const params[], serverPlayers[MODE_MAX
 		    SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/vehicle] Недостаточно средств. Необходимо $20");
 	    return 1;
 	}
+	if (serverPlayers[playerid][money] > 10000)
+	{
+		new Float:multiplyer = floatmul(serverPlayers[playerid][money], 0.00001);
+		multiplyer = multiplyer > 0.95 ? 0.95 : multiplyer;
+		new Float:cash = floatmul(multiplyer, serverPlayers[playerid][money]);
+		printf("cash: %f (int:%d)", cash, _:cash);
+		AddPlayerMoney(playerid, -floatround(cash), serverPlayers);
+		if(serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle] Your cash balance is more than $10.000, all vehicles costs more now.");
+		else
+		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/vehicle] Ваш баланс больше $10.000. Теперь весь транспорт стоит дороже чем для новичков.");
+	}
 	if (color1 < 0 || color2 < 0)
 	{
 	    color1 = random(255);
@@ -62,7 +74,16 @@ public CommandGivePlayerVehicle(playerid, const params[], serverPlayers[MODE_MAX
 	sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, serverPlayers);
 	
 	new Float:x, Float:y, Float:z, Float:facingAngle;
-	GetPlayerPos(playerid, x, y, z);
-	GetPlayerFacingAngle(playerid, facingAngle);
+	if (IsPlayerInAnyVehicle(playerid))
+	{
+		new oldVehID = GetPlayerVehicleID(playerid);
+		GetVehiclePos(oldVehID, x, y, z);
+		GetVehicleZAngle(oldVehID, facingAngle);
+	}
+	else
+	{
+		GetPlayerPos(playerid, x, y, z);
+		GetPlayerFacingAngle(playerid, facingAngle);
+	}
 	return GivePlayerVehicle(playerid, vehID, x, y, z, facingAngle, color1, color2, -1, 0, serverPlayers);
 }

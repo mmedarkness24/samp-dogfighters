@@ -17,6 +17,14 @@ public CommandSpec(playerid, const params[], serverPlayers[MODE_MAX_PLAYERS][ser
 	    return 1;
     }
 	new targetid = strval(params);
+    if (targetid == playerid)
+    {
+        if(serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/spec] You can't spectate yourself");
+		else
+		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/spec] Вы не можете следить за самим собой");
+	    return 1;
+    }
     if (PlayerSpectate(playerid, targetid, serverPlayers))
     {
         if(serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
