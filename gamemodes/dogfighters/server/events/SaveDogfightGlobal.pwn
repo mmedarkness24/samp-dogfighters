@@ -108,8 +108,8 @@ public SaveDogfightPvpData(winnerID, looserID, serverPlayers[MODE_MAX_PLAYERS][s
     format(dfInfo[videoPlayer1], 128, "");
     format(dfInfo[videoPlayer2], 128, "");
     SaveDogfightData(dfInfo, serverPlayers);
-    new messageEN[64];
-    new messageRU[64];
+    new messageEN[100];
+    new messageRU[100];
     format(messageEN, sizeof(messageEN), "Dogfight results auto-saved: %s (%d) [%d:%d] (%d) %s",
                                                                                         serverPlayers[dfInfo[player1ID]][name],
                                                                                         dfInfo[player1ID],

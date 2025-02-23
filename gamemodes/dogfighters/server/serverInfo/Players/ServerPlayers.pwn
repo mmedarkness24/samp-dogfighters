@@ -3,6 +3,7 @@
 
 	#include "dogfighters\server\serverInfo\Gamemode\ModeInfo.pwn"
 	#include "dogfighters\server\serverInfo\Gamemode\ModeDefaultValues.pwn"
+	#include "dogfighters\server\serverInfo\Gamemode\ModeColors.pwn"
 
 	#define SERVER_PLAYERS_MAX_NAME MAX_PLAYER_NAME + 1
 
@@ -44,6 +45,7 @@
 	forward ServerPlayerSetDeath(playerid, deathsValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetPvpID(playerid, targetid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerIsInPvp(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+	forward ServerPlayerWhoWantsPvp(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetPvpScore(playerid, scoreValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerAddPvpScore(playerid, scoreValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 	forward ServerPlayerSetPvpTextdraw(playerid, PlayerText:textdraw, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
@@ -70,6 +72,7 @@
 		ServerPlayerSetPvpID(playerid, NOTSET, serverPlayers);
 		ServerPlayerSetPvpScore(playerid, NOTSET, serverPlayers);
 		ServerPlayerSetPvpTextdraw(playerid, PlayerText:NOTSET, serverPlayers);
+
 		ServerPlayerSetLoggedIn(playerid, false, serverPlayers);
 
 		//ServerPlayerResetPersonalTimer(playerid, serverPlayers);
@@ -152,10 +155,30 @@
 	}
 	public ServerPlayerIsInPvp(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{
-		if (serverPlayers[playerid][pvpid] < 0 || serverPlayers[playerid][pvpid] >= MODE_MAX_PLAYERS)
+		if (serverPlayers[playerid][pvpid] < 0 || 
+			serverPlayers[playerid][pvpid] >= MODE_MAX_PLAYERS || 
+			serverPlayers[serverPlayers[playerid][pvpid]][pvpid] != playerid)
 			return 0;
 		else
 			return 1;
+	}
+	public ServerPlayerWhoWantsPvp(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+	{
+		new resultID = NOTSET;
+		for (new i = 0; i < MODE_MAX_PLAYERS; i++)
+		{
+			if (serverPlayers[i][pvpid] == playerid)
+			{
+				if (resultID == NOTSET)
+					resultID = i;
+				else
+				{
+					SendClientMessage(i, COLOR_SYSTEM_DISCORD, "[/pvp] Duel request was cancelled (timeout)");
+					PlayerCancelDuel(i, serverPlayers);
+				}
+			}
+		}
+		return resultID;
 	}
 	public ServerPlayerSetPvpScore(playerid, scoreValue, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 	{

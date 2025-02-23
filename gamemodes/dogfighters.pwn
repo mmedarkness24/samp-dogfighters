@@ -315,6 +315,7 @@ public OnPlayerRequestClass(playerid, classid)
 
 public OnPlayerCommandText(playerid, cmdtext[])
 {
+    dcmd(login, 5, cmdtext);
 	if (!_serverPlayers[playerid][isLoggedIn])
 	{
 	    if (_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
@@ -323,6 +324,8 @@ public OnPlayerCommandText(playerid, cmdtext[])
             SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "Сначала необходимо залогиниться");
 		return 1;
 	}
+	dcmd(setlevel, 8, cmdtext);
+	
     dcmd(kill, 4, cmdtext);
     
     dcmd(language,8,cmdtext);
@@ -343,6 +346,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	
 	dcmd(savedf, 6, cmdtext);
 
+	dcmd(cancelpvp, 9, cmdtext);
 	if (ServerPlayerIsInPvp(playerid, _serverPlayers))
 	{
 	    if (_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
@@ -418,6 +422,11 @@ dcmd_savedf(playerid, const params[])
 	return CommandSaveDogfight(playerid, params, _serverPlayers);
 }
 
+dcmd_cancelpvp(playerid, const params[])
+{
+	return CommandCancelPvp(playerid, params, _serverPlayers);
+}
+
 dcmd_heal(playerid, const params[])
 {
 	return CommandHeal(playerid, params, _serverPlayers);
@@ -478,9 +487,20 @@ dcmd_setlang(playerid, const params[])
 	return dcmd_language(playerid, params);
 }
 
+dcmd_setlevel(playerid, const params[])
+{
+	return CommandSetLevelAdm(playerid, params, _serverPlayers);
+}
+
 dcmd_kill(playerid, const params[])
 {
 	return CommandKill(playerid, params, _serverPlayers);
+}
+
+dcmd_login(playerid, const params[])
+{
+    ServerPlayerSetLoggedIn(playerid, false, _serverPlayers);
+	return LoginSystem_OnPlayerConnect(playerid, _serverPlayers);
 }
 
 dcmd_reclass(playerid, const params[])

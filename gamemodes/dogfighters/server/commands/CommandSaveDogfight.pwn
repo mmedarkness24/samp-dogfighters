@@ -4,6 +4,7 @@
 #include "dogfighters\server\serverMain.pwn"
 #include "dogfighters\vehicle\vehicleMain.pwn"
 #include "dogfighters\player\localization\PlayerLanguage.pwn"
+#include "dogfighters\database\databaseMain.pwn"
 
 #define DEBUG_MODE_SAVE_DF false
 
@@ -18,7 +19,7 @@ public CommandSaveDogfight(playerid, const params[], serverPlayers[MODE_MAX_PLAY
     dfInfo[player2Score] = 4;
     format(dfInfo[videoPlayer1], 127, "https://youtu.be/4Mdyby5IzYw?si=fMfmYomgPOGyqTZZ");
     format(dfInfo[videoPlayer2], 127, "https://youtu.be/CDbW3-FWOWo?si=2dk7MFea83ExRh92");
-    dfInfo[refereeID] = NOTSET;*/
+    dfInfo[refereeID] = NOTSET;
 
     #if DEBUG_MODE_SAVE_DF == true
     printf("dfInfo: %d vs %d [%d:%d] (%s), (%s) %d", 
@@ -29,7 +30,16 @@ public CommandSaveDogfight(playerid, const params[], serverPlayers[MODE_MAX_PLAY
                                                     dfInfo[videoPlayer1],
                                                     dfInfo[videoPlayer2],
                                                     dfInfo[refereeID]);
-    #endif
+    #endif*/
+
+    if (LoginSystem_GetAccessLevel(playerid, serverPlayers) < 4)
+    {
+        if(serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+	    	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/savedf] You don't have access to this command");
+		else
+		    SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "[/savedf] У вас нет доступа к этой команде");
+	    return 1;
+    }
     showAddDFDialog_Player1(playerid, serverPlayers, dfInfo);
     //SaveDogfightData(dfInfo, serverPlayers);
     return 1;

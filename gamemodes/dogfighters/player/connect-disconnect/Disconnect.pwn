@@ -24,7 +24,20 @@ public PlayerDisconnect(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
         #if DEBUG_MODE == true
         printf("Player %s (%d) was in pvp", serverPlayers[playerid][name], playerid);
         #endif
-        PlayerIncreaseDuelScore(serverPlayers[playerid][pvpid], 5, serverPlayers);
+        PlayerIncreaseDuelScore(serverPlayers[playerid][pvpid], 5 - serverPlayers[serverPlayers[playerid][pvpid]][pvpscore], serverPlayers);
+    }
+    new whowantsPvp = ServerPlayerWhoWantsPvp(playerid, serverPlayers);
+    if (whowantsPvp != NOTSET)
+    {
+        #if DEBUG_MODE == true
+        printf("Player ID %d wanted to duel with %s (%d)", whowantsPvp, serverPlayers[playerid][name], playerid);
+        #endif
+        if (serverPlayers[whowantsPvp][language] == PLAYER_LANGUAGE_ENGLISH) 
+            SendClientMessage(whowantsPvp, COLOR_SYSTEM_MAIN, "Player disconnected. Choose someone else to duel with.");
+        else
+            SendClientMessage(whowantsPvp, COLOR_SYSTEM_MAIN, "Игрок вышел. Придётся найти кого-то другого для дуэли.");
+        //PlayerStopDuel(whowantsPvp, serverPlayers);
+        PlayerCancelDuel(whowantsPvp, serverPlayers);
     }
     ServerPlayerReset(playerid, serverPlayers);
 }
