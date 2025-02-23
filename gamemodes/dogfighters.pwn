@@ -378,6 +378,11 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	dcmd(y, 1, cmdtext);
 	dcmd(n, 1, cmdtext);
 	
+	dcmd(spec, 4, cmdtext);
+	dcmd(specoff, 7, cmdtext);
+	dcmd(unspec, 7, cmdtext);
+	dcmd(uspec, 7, cmdtext);
+	
 	dcmd(vt, 2, cmdtext);
 	
 	dcmd(help, 4, cmdtext);
@@ -546,6 +551,26 @@ dcmd_y(playerid, const params[])
 dcmd_n(playerid, const params[])
 {
 	return CommandDecline(playerid, params, _serverPlayers);
+}
+
+dcmd_spec(playerid, const params[])
+{
+    return CommandSpec(playerid, params, _serverPlayers);
+}
+
+dcmd_specoff(playerid, const params[])
+{
+	return CommandSpecOff(playerid, params, _serverPlayers);
+}
+
+dcmd_unspec(playerid, const params[])
+{
+	return dcmd_specoff(playerid, params);
+}
+
+dcmd_uspec(playerid, const params[])
+{
+	return dcmd_specoff(playerid, params);
 }
 
 dcmd_help(playerid, const params[])

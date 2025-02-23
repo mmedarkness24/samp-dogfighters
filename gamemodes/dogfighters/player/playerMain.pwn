@@ -10,4 +10,5 @@
 	#include "dogfighters/player/events/PlayerKill.pwn"
 	#include "dogfighters/player/systems/PlayerMoney.pwn"
 	#include "dogfighters/player/systems/PlayerDuel.pwn"
+	#include "dogfighters/player/systems/PlayerSpec.pwn"
 #endif
