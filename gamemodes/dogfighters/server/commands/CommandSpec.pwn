@@ -28,9 +28,9 @@ public CommandSpec(playerid, const params[], serverPlayers[MODE_MAX_PLAYERS][ser
     if (PlayerSpectate(playerid, targetid, serverPlayers))
     {
         if(serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
-	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/spec] Spectate mode activated");
+	    	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/spec] Spectate mode activated (to stop spectating enter /specoff)");
 		else
-		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/spec] Вы перешли в режим слежения");
+		    SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/spec] Вы перешли в режим слежения (чтобы перестать следить введите /specoff)");
     }
     else
     {

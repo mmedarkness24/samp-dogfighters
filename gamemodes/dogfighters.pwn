@@ -66,8 +66,8 @@ public OnGameModeInit()
 	AddPlayerClass(181,342.61,2533.93,17,270.1425,0,0,0,0,-1,-1);// Punk
 	AddPlayerClass(179,293.7,2031.31,18,270.1425,0,0,0,0,-1,-1);//  Army SF
 	AddPlayerClass(287,-1409.96,496.92,19,270.1425,0,0,0,0,-1,-1);//    Army LV
-	AddPlayerClass(227,1687.82,1449.2,11,90,0,0,0,0,-1,-1);//    Dispatch
-    AddPlayerClass(61,1889.45,-2289,13,90,0,0,0,0,-1,-1);//    Civil Pilot
+	AddPlayerClass(227,1687.82,1449.2,11,270,0,0,0,0,-1,-1);//    Dispatch
+    AddPlayerClass(61,1889.45,-2289,13,270,0,0,0,0,-1,-1);//    Civil Pilot
 
 	if (!CA_Init())
 	    printf("[planesFireFix]: cannot create raycast world. Script may not work well.");
@@ -394,6 +394,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	
 	dcmd(vt, 2, cmdtext);
 	
+	dcmd(kick, 4, cmdtext);
+	dcmd(ban, 3, cmdtext);
+	
 	dcmd(help, 4, cmdtext);
 	return 0;
 }
@@ -580,6 +583,16 @@ dcmd_unspec(playerid, const params[])
 dcmd_uspec(playerid, const params[])
 {
 	return dcmd_specoff(playerid, params);
+}
+
+dcmd_kick(playerid, const params[])
+{
+	return CommandKickAdm(playerid, params, _serverPlayers);
+}
+
+dcmd_ban(playerid, const params[])
+{
+    return CommandBanAdm(playerid, params, _serverPlayers);
 }
 
 dcmd_help(playerid, const params[])
