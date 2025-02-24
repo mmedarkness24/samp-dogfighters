@@ -9,6 +9,7 @@ forward PlayerDeclineDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer
 forward PlayerStartDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 forward PlayerSpawnDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 forward PlayerStopDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+forward PlayerCancelDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 
 forward PlayerIncreaseDuelScore(playerid, value, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 forward PlayerWinDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
@@ -17,14 +18,42 @@ forward PlayerDuelUpdateTextdraw(playerid, serverPlayers[MODE_MAX_PLAYERS][serve
 
 public PlayerRequestDuel(playerid, targetid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
-    if (serverPlayers[playerid][pvpid] > 0)
+    if (!IsPlayerConnected(playerid) || !serverPlayers[playerid][isLoggedIn])
+    {
+        if (serverPlayers[targetid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(targetid, COLOR_SYSTEM_DISCORD, "[/pvp] This player ID is not logged in. Request cancelled.");
+        else
+            SendClientMessage(targetid, COLOR_SYSTEM_DISCORD, "[/pvp] Нет залогиненного игрока с таким ID. Запрос отменён.");
+        ServerPlayerSetPvpID(targetid, NOTSET, serverPlayers);
+        return;
+    }
+    new playerCurrentPvp = ServerPlayerWhoWantsPvp(targetid, serverPlayers);
+    if (playerCurrentPvp != NOTSET)
+    {
+        if (serverPlayers[playerCurrentPvp][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerCurrentPvp, COLOR_SYSTEM_DISCORD, "[/pvp] Player was declined your duel request");
+        else
+            SendClientMessage(playerCurrentPvp, COLOR_SYSTEM_DISCORD, "[/pvp] Игрок отклонил ваш запрос на дуэль");
+        ServerPlayerSetPvpID(playerCurrentPvp, NOTSET, serverPlayers);
+    }
+    if (serverPlayers[playerid][pvpid] > NOTSET)
     {
         if (serverPlayers[targetid][language] == PLAYER_LANGUAGE_ENGLISH)
             SendClientMessage(targetid, COLOR_SYSTEM_DISCORD, "[/pvp] This player is already have duel request from someone");
         else
             SendClientMessage(targetid, COLOR_SYSTEM_DISCORD, "[/pvp] У этого игрока уже есть запрос на дуэль с кем-то");
-        PlayerStopDuel(targetid, serverPlayers);
+        //PlayerStopDuel(targetid, serverPlayers);
+        ServerPlayerSetPvpID(targetid, NOTSET, serverPlayers);
         return;
+    }
+    new currentPvp = ServerPlayerWhoWantsPvp(playerid, serverPlayers);
+    if (currentPvp > NOTSET && currentPvp != targetid)
+    {
+        if (serverPlayers[targetid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(targetid, COLOR_SYSTEM_DISCORD, "[/pvp] This player already have many pvp requests");
+        else
+            SendClientMessage(targetid, COLOR_SYSTEM_DISCORD, "[/pvp] У этого игрока уже много других запросов на дуэль");
+        ServerPlayerSetPvpID(targetid, NOTSET, serverPlayers);
     }
     new message[128];
     if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
@@ -55,6 +84,17 @@ public PlayerAcceptDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
      #if DEBUG_MODE == true
     printf("PlayerAcceptDuel target: %s (%d)", serverPlayers[targetid][name], targetid);
     #endif
+    if (serverPlayers[targetid][pvpid] != playerid)
+    {
+        if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/pvp] Waiting for duel time is expired.");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "[/pvp] Истёк срок ожидания по этому запросу."); 
+        #if DEBUG_MODE == true
+        printf("PlayerAcceptDuel: player request time is expired (%d) for %d", targetid, playerid);
+        #endif
+        return;
+    }
     if (!IsPlayerConnected(targetid))
     {
         if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
@@ -121,27 +161,56 @@ public PlayerIncreaseDuelScore(playerid, value, serverPlayers[MODE_MAX_PLAYERS][
     #if DEBUG_MODE == true
     printf("Player %s (%d) received 1 score point (total score: %d)", serverPlayers[playerid][name], playerid, serverPlayers[playerid][pvpscore]);
     #endif
+
+    if (AddPlayerMoney(playerid, 5000, serverPlayers))
+    {
+        if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Round win bonus: $5000");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Бонус за победу в раунде: $5000");
+    }
+    #if DEBUG_MODE == true
+    printf("player duel [133]------");
+    #endif
+
     if (serverPlayers[playerid][pvpscore] >= 5)
         PlayerWinDuel(playerid, serverPlayers);
+
+    #if DEBUG_MODE == true
+    printf("player duel [140]------");
+    #endif
     
     if (serverPlayers[playerid][pvptextdraw] == PlayerText:NOTSET)
         return;
     PlayerDuelUpdateTextdraw(playerid, serverPlayers);
+
+    #if DEBUG_MODE == true
+    printf("player duel [148]------");
+    #endif
 }
 
 public PlayerDuelUpdateTextdraw(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
     new textdrawtext[256];
+    /*new score1 = serverPlayers[playerid][pvpscore] > -1 ? serverPlayers[playerid][pvpscore] : 0;
+    new score2 = serverPlayers[serverPlayers[playerid][pvpid]][pvpscore] > -1 ? serverPlayers[serverPlayers[playerid][pvpid]][pvpscore] : 0;*/
     format(textdrawtext, sizeof(textdrawtext), "~W~%s ~Y~[~G~%d : %d~Y~] ~W~%s", 
         serverPlayers[playerid][name], 
-        serverPlayers[playerid][pvpscore],
-        serverPlayers[serverPlayers[playerid][pvpid]][pvpscore],
+        serverPlayers[playerid][pvpscore] > -1 ? serverPlayers[playerid][pvpscore] : 0,
+        serverPlayers[serverPlayers[playerid][pvpid]][pvpscore] > -1 ? serverPlayers[serverPlayers[playerid][pvpid]][pvpscore] : 0,
         serverPlayers[serverPlayers[playerid][pvpid]][name]);
     PlayerTextDrawSetString(playerid, serverPlayers[playerid][pvptextdraw], textdrawtext);
 }
 
 public PlayerWinDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
+    #if DEBUG_MODE == true
+    printf("win duel [168]<<-----");
+    #endif
+    SaveDogfightPvpData(playerid, serverPlayers[playerid][pvpid], serverPlayers);
+    #if DEBUG_MODE == true
+    printf("win duel [171]<<-----");
+    #endif
     new messageRU[128];
     new messageEN[128];
     format(messageRU, sizeof(messageRU), "Игрок %s (%d) победил в дуэли против %s (%d)", 
@@ -154,22 +223,32 @@ public PlayerWinDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
         playerid,
         serverPlayers[serverPlayers[playerid][pvpid]][name],
         serverPlayers[playerid][pvpid]);
+        #if DEBUG_MODE == true
+    printf("win duel [187]<<-----");
+    #endif
     sendLocalizedMessage(messageRU, messageEN, COLOR_SYSTEM_DISCORD, serverPlayers);
+    #if DEBUG_MODE == true
+    printf("win duel [191]<<-----");
+    #endif
     //  ***    Send duel results logic here    ***
     //  /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
     //  ------------------------------------------
     PlayerStopDuel(serverPlayers[playerid][pvpid], serverPlayers);
+    #if DEBUG_MODE == true
+    printf("win duel [197]<<-----");
+    #endif
     PlayerStopDuel(playerid, serverPlayers);
+    #if DEBUG_MODE == true
+    printf("win duel [199]<<-----");
+    #endif
 }
 
 public PlayerStartDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
     ServerPlayerSetPvpScore(playerid, 0, serverPlayers);
     new textdrawtext[256];
-    format(textdrawtext, sizeof(textdrawtext), "~W~%s ~Y~[~G~%d : %d~Y~] ~W~%s", 
-        serverPlayers[playerid][name], 
-        serverPlayers[playerid][pvpscore],
-        serverPlayers[serverPlayers[playerid][pvpid]][pvpscore],
+    format(textdrawtext, sizeof(textdrawtext), "~W~%s ~Y~[~G~0 : 0~Y~] ~W~%s", 
+        serverPlayers[playerid][name],
         serverPlayers[serverPlayers[playerid][pvpid]][name]);
     ServerPlayerSetPvpTextdraw(playerid, CreatePlayerTextDraw(playerid, 25, 315, textdrawtext), serverPlayers);
     PlayerTextDrawFont(playerid, serverPlayers[playerid][pvptextdraw], 3);
@@ -185,7 +264,7 @@ public PlayerStartDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 
 public PlayerSpawnDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
-    new virtualWorld = (MODE_MAX_PLAYERS - playerid) + (MODE_MAX_PLAYERS - serverPlayers[playerid][pvpid]);
+    new virtualWorld = serverPlayers[playerid][pvpid] > playerid ? serverPlayers[playerid][pvpid] : playerid;
     new Float:x, Float:y, Float:z;
     switch(random(10))
     {
@@ -275,12 +354,16 @@ public PlayerSpawnDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
         SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "You're in duel now. Take a vehicle (/car) and fight!");
     else
         SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Вы находитесь в дуэли. Возьмите технику (/car) и сражайтесь!");
-    GivePlayerWeapon(playerid, 35, 3);
+    GivePlayerWeapon(playerid, 35, 31);
     PlayerDuelUpdateTextdraw(playerid, serverPlayers);
 }
 
 public PlayerStopDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
+    new bool:givecash = true;
+    if (serverPlayers[serverPlayers[playerid][pvpid]][pvpid] != playerid && 
+        serverPlayers[serverPlayers[playerid][pvpid]][pvpid] != NOTSET)
+        givecash = false;
     if (serverPlayers[playerid][pvptextdraw] != PlayerText:NOTSET)
         PlayerTextDrawDestroy(playerid, serverPlayers[playerid][pvptextdraw]);
     SetPlayerVirtualWorld(playerid, 0);
@@ -292,12 +375,35 @@ public PlayerStopDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
         RemovePlayerFromVehicle(playerid);
     SetPlayerPos(playerid, 0, 0, 5);
     SpawnPlayer(playerid);
-
+    
+    if (!givecash)
+        return;
     if (!AddPlayerMoney(playerid, 2000, serverPlayers))
         return;
     if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
         SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Duel participation bonus: $2000");
     else
         SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Бонус за участие в дуэли: $2000");
+}
+
+PlayerCancelDuel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+{
+    new bool:isActuallyInPvp = false;
+    if (serverPlayers[playerid][pvpid] == NOTSET)
+        return;
+    if (serverPlayers[playerid][pvpscore] > NOTSET)
+        isActuallyInPvp = true;
+    if (serverPlayers[playerid][pvptextdraw] != PlayerText:NOTSET)
+        PlayerTextDrawDestroy(playerid, serverPlayers[playerid][pvptextdraw]);
+    SetPlayerVirtualWorld(playerid, 0);
+    ServerPlayerSetPvpID(playerid, NOTSET, serverPlayers);
+    ServerPlayerSetPvpScore(playerid, NOTSET, serverPlayers);
+    ServerPlayerSetPvpTextdraw(playerid, PlayerText:NOTSET, serverPlayers);
+    if (!isActuallyInPvp)
+        return;
+    if (IsPlayerInAnyVehicle(playerid))
+        RemovePlayerFromVehicle(playerid);
+    SetPlayerPos(playerid, 0, 0, 5);
+    SpawnPlayer(playerid);
 }
 #endif
