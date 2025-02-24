@@ -38,7 +38,7 @@ public showAddDFDialog_Player1(playerid, serverPlayers[MODE_MAX_PLAYERS][serverP
             printf("Player %s (%d) was trying to use /savedf when it was used by %d", 
                                                                                         serverPlayers[playerid][name], 
                                                                                         playerid,
-                                                                                        serverPlayers[usedBy]);
+                                                                                        dfInfo[usedBy]);
             if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
                 SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Dogfight adding panel is beasy at this moment. Try again later.");
             else
@@ -457,7 +457,7 @@ public processSummaryDialog(playerid, response, listitem, serverPlayers[MODE_MAX
 #define DIALOG_ADD_DF_APPROVE 48
 */
 
-stock validateNumberInput(playerid, inputtext[])
+stock validateNumberInput(playerid, const inputtext[])
 {
     new value = strval(inputtext);
     if (value == NOTSET)    //  !another check needed!
@@ -481,7 +481,7 @@ stock isDFPanelBeasy(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer], df
         printf("Player %s (%d) was trying to use /savedf [stage 1+] (he has no rights, current user: (%d))", 
                                                                                         serverPlayers[playerid][name], 
                                                                                         playerid,
-                                                                                        serverPlayers[usedBy]);
+                                                                                        dfInfo[usedBy]);
         if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
             SendClientMessage(playerid, COLOR_SYSTEM_MAIN, "Dogfight adding panel is beasy at this moment. Try again later.");
         else

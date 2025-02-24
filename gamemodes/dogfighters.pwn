@@ -66,8 +66,16 @@ public OnGameModeInit()
 	AddPlayerClass(181,342.61,2533.93,17,270.1425,0,0,0,0,-1,-1);// Punk
 	AddPlayerClass(179,293.7,2031.31,18,270.1425,0,0,0,0,-1,-1);//  Army SF
 	AddPlayerClass(287,-1409.96,496.92,19,270.1425,0,0,0,0,-1,-1);//    Army LV
-	AddPlayerClass(227,1687.82,1449.2,11,90,0,0,0,0,-1,-1);//    Dispatch
-    AddPlayerClass(61,1889.45,-2289,13,90,0,0,0,0,-1,-1);//    Civil Pilot
+	AddPlayerClass(227,1687.82,1449.2,11,270,0,0,0,0,-1,-1);//    Dispatch
+    AddPlayerClass(61,1889.45,-2289,13,270,0,0,0,0,-1,-1);//    Civil Pilot
+    
+    new helptext[39];
+    format(helptext, sizeof(helptext), "Use /help to see all player's commands");
+    Create3DTextLabel(helptext, COLOR_SYSTEM_MAIN, 342.61,2533.93,16.4, 10, 0, 0);
+    Create3DTextLabel(helptext, COLOR_SYSTEM_MAIN, 293.7,2031.31,17.3, 10, 0, 0);
+    Create3DTextLabel(helptext, COLOR_SYSTEM_MAIN, -1409.96,496.92,18.3, 10, 0, 0);
+    Create3DTextLabel(helptext, COLOR_SYSTEM_MAIN, 1687.82,1449.2,10.4, 10, 0, 0);
+    Create3DTextLabel(helptext, COLOR_SYSTEM_MAIN, 1889.45,-2289,13, 10, 0, 0);
 
 	if (!CA_Init())
 	    printf("[planesFireFix]: cannot create raycast world. Script may not work well.");
@@ -315,6 +323,7 @@ public OnPlayerRequestClass(playerid, classid)
 
 public OnPlayerCommandText(playerid, cmdtext[])
 {
+    dcmd(login, 5, cmdtext);
 	if (!_serverPlayers[playerid][isLoggedIn])
 	{
 	    if (_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
@@ -323,6 +332,25 @@ public OnPlayerCommandText(playerid, cmdtext[])
             SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "Сначала необходимо залогиниться");
 		return 1;
 	}
+	dcmd(spec, 4, cmdtext);
+	dcmd(specoff, 7, cmdtext);
+	dcmd(unspec, 7, cmdtext);
+	dcmd(uspec, 7, cmdtext);
+	dcmd(givecash, 8, cmdtext);
+	dcmd(givemoney, 9, cmdtext);
+	dcmd(pay, 3, cmdtext);
+	
+	new playerState = GetPlayerState(playerid);
+	if (playerState < PLAYER_STATE_ONFOOT || playerState > PLAYER_STATE_PASSENGER)
+	{
+	    if (_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+            SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "You should spawn");
+        else
+            SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "Сначала необходимо заспавниться");
+		return 1;
+	}
+	dcmd(setlevel, 8, cmdtext);
+	
     dcmd(kill, 4, cmdtext);
     
     dcmd(language,8,cmdtext);
@@ -343,6 +371,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	
 	dcmd(savedf, 6, cmdtext);
 
+	dcmd(cancelpvp, 9, cmdtext);
 	if (ServerPlayerIsInPvp(playerid, _serverPlayers))
 	{
 	    if (_serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
@@ -375,6 +404,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	dcmd(n, 1, cmdtext);
 	
 	dcmd(vt, 2, cmdtext);
+	
+	dcmd(kick, 4, cmdtext);
+	dcmd(ban, 3, cmdtext);
 	
 	dcmd(help, 4, cmdtext);
 	return 0;
@@ -416,6 +448,11 @@ dcmd_pass(playerid, const params[])
 dcmd_savedf(playerid, const params[])
 {
 	return CommandSaveDogfight(playerid, params, _serverPlayers);
+}
+
+dcmd_cancelpvp(playerid, const params[])
+{
+	return CommandCancelPvp(playerid, params, _serverPlayers);
 }
 
 dcmd_heal(playerid, const params[])
@@ -478,9 +515,20 @@ dcmd_setlang(playerid, const params[])
 	return dcmd_language(playerid, params);
 }
 
+dcmd_setlevel(playerid, const params[])
+{
+	return CommandSetLevelAdm(playerid, params, _serverPlayers);
+}
+
 dcmd_kill(playerid, const params[])
 {
 	return CommandKill(playerid, params, _serverPlayers);
+}
+
+dcmd_login(playerid, const params[])
+{
+    ServerPlayerSetLoggedIn(playerid, false, _serverPlayers);
+	return LoginSystem_OnPlayerConnect(playerid, _serverPlayers);
 }
 
 dcmd_reclass(playerid, const params[])
@@ -528,6 +576,51 @@ dcmd_n(playerid, const params[])
 	return CommandDecline(playerid, params, _serverPlayers);
 }
 
+dcmd_spec(playerid, const params[])
+{
+    return CommandSpec(playerid, params, _serverPlayers);
+}
+
+dcmd_specoff(playerid, const params[])
+{
+	return CommandSpecOff(playerid, params, _serverPlayers);
+}
+
+dcmd_unspec(playerid, const params[])
+{
+	return dcmd_specoff(playerid, params);
+}
+
+dcmd_uspec(playerid, const params[])
+{
+	return dcmd_specoff(playerid, params);
+}
+
+dcmd_givecash(playerid, const params[])
+{
+	return CommandGiveCash(playerid, params, _serverPlayers);
+}
+
+dcmd_givemoney(playerid, const params[])
+{
+	return dcmd_givecash(playerid, params);
+}
+
+dcmd_pay(playerid, const params[])
+{
+	return dcmd_givecash(playerid, params);
+}
+
+dcmd_kick(playerid, const params[])
+{
+	return CommandKickAdm(playerid, params, _serverPlayers);
+}
+
+dcmd_ban(playerid, const params[])
+{
+    return CommandBanAdm(playerid, params, _serverPlayers);
+}
+
 dcmd_help(playerid, const params[])
 {
 	return CommandHelp(playerid, params, _serverPlayers);
@@ -535,23 +628,9 @@ dcmd_help(playerid, const params[])
 
 dcmd_vt(playerid, const params[])
 {
-	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, "test");
-	new passengers[4];
-	GetVehicleDriverAndPassengers(_serverPlayers[playerid][vehicleID], passengers[0], passengers[1], passengers[2], passengers[3]);
-	new message[256];
-	for (new i = 0; i < 4; i++)
-	    if(passengers[i] == -1)
-	        passengers[i] = MODE_MAX_PLAYERS - 1;
-	format(message, sizeof(message), "Vehicle passengers. Driver:%s (%d), p1:%s (%d), p2:%s (%d), p3:%s (%d)",
-		_serverPlayers[passengers[0]][name],
-		passengers[0],
-		_serverPlayers[passengers[1]][name],
-	    passengers[1],
-	    _serverPlayers[passengers[2]][name],
-	    passengers[2],
-	    _serverPlayers[passengers[3]][name],
-	    passengers[3]);
-	SendClientMessage(playerid, COLOR_SYSTEM_DISCORD, message);
+	if (LoginSystem_GetAccessLevel(playerid, _serverPlayers) < 4)
+	    return 0;
+	AddPlayerMoney(playerid, 10000, _serverPlayers);
 	return 1;
 }
 

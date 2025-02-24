@@ -15,6 +15,8 @@ forward LoginSystem_OnPlayerDisconnect(playerid, serverPlayers[MODE_MAX_PLAYERS]
 forward LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inputtext[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 forward LoginSystem_OnPlayerDeath(playerid, killerid, reason, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 forward LoginSystem_OnChangePassword(playerid, password[], serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+forward LoginSystem_GetAccessLevel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
+forward LoginSystem_SetAccessLevel(playerid, level, serverPlayers[MODE_MAX_PLAYERS][serverPlayer]);
 
 public OnLoginSystemInit()
 {
@@ -36,6 +38,8 @@ public OnLoginSystemInit()
     yoursql_verify_column(SQL:0, LOGIN_PASS_TBL_USRDEATHS, SQL_NUMBER);
     //verify column "Score" to store user score count
     yoursql_verify_column(SQL:0, LOGIN_PASS_TBL_USRSCORE, SQL_NUMBER);
+	//verify column "Score" to store user score count
+    yoursql_verify_column(SQL:0, LOGIN_PASS_TBL_USRACCESS, SQL_NUMBER);
 
     return 1;
 }
@@ -79,14 +83,15 @@ public LoginSystem_OnPlayerConnect(playerid, serverPlayers[MODE_MAX_PLAYERS][ser
 
 public LoginSystem_OnPlayerDisconnect(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
+	printf("[LoginSystem] LoginRegister %d", playerid);
 	//save player's score
-	new
-		namePlayer[MAX_PLAYER_NAME + 1]
-	;
-	GetPlayerName(playerid, namePlayer, MAX_PLAYER_NAME + 1);
-
+	new SQLRow:rowid = yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", serverPlayers[playerid][name]);
+	if (rowid < SQLRow:1)
+		printf("[LoginSystem] Error: OnPlayerDisconnect - cannot fight player in database: %s (%d) [rowid: %d]", serverPlayers[playerid][name], playerid, int:rowid);
+	else
+		printf("[LoginSystem]: Saving player's score: %s (%d) score: %d, rowid: %d", serverPlayers[playerid][name], playerid, serverPlayers[playerid][money], int:rowid);
 	//save player score
-	yoursql_set_field_int(SQL:0, LOGIN_PASS_TBL_USR, yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", namePlayer), GetPlayerScore(playerid));
+	yoursql_set_field_int(SQL:0, LOGIN_PASS_TBL_USRSCORE, rowid, serverPlayers[playerid][money]);
 
 	return 1;
 }
@@ -145,7 +150,7 @@ public LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inpu
 				if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
 					SendClientMessage(playerid, 0x00FF00FF, "SUCCESS: You have successfully registered your account in the server.");
 				else
-					SendClientMessage(playerid, 0x00FF00FF, "КРУТ!: Ваш ник теперь зарегистрирован на этом сервере.");
+					SendClientMessage(playerid, 0x00FF00FF, "Ваш ник теперь зарегистрирован на этом сервере.");
 				ServerPlayerSetLoggedIn(playerid, true, serverPlayers);  
 		    }
 		}
@@ -167,7 +172,8 @@ public LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inpu
 				new
 				    acc_password[128]
 				;
-				yoursql_get_field(SQL:0, LOGIN_PASS_TBL_USRPASS_SML, yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", namePlayer), acc_password);
+				new SQLRow:rowid = yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", namePlayer);
+				yoursql_get_field(SQL:0, LOGIN_PASS_TBL_USRPASS_SML, rowid, acc_password);
 
 				//read the current input password and hash it
 				new
@@ -202,7 +208,19 @@ public LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inpu
 		        if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
 					SendClientMessage(playerid, 0x00FF00FF, "SUCCESS: You have successfully logged in your account, enjoy playing!");
 				else
-					SendClientMessage(playerid, 0x00FF00FF, "КРУТ!: Вы успешно авторизовались под своим логином. Желаем вам приятной игры!");
+					SendClientMessage(playerid, 0x00FF00FF, "Вы успешно авторизовались под своим логином. Желаем вам приятной игры!");
+				new accessLevel = LoginSystem_GetAccessLevel(playerid, serverPlayers);
+				if (accessLevel > 0)
+				{
+					if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+						format(password, sizeof(password), "You have admin rights level: %d", accessLevel);
+					else
+						format(password, sizeof(password), "Ваш уровень админ прав: %d", accessLevel);
+					SendClientMessage(playerid, COLOR_SYSTEM_MAIN, password);
+				}
+				new bankCash = yoursql_get_field_int(SQL:0, LOGIN_PASS_TBL_USRSCORE_SML, rowid);
+				if (bankCash > 0 && bankCash < 90000000)
+					AddPlayerMoney(playerid, bankCash, serverPlayers);
 				ServerPlayerSetLoggedIn(playerid, true, serverPlayers);
 		    }
 		}
@@ -275,4 +293,41 @@ public LoginSystem_OnChangePassword(playerid, password[], serverPlayers[MODE_MAX
 		format(passwordHashed, sizeof(passwordHashed), "[/password]: Пароль успешно изменён!");
 	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, passwordHashed);
 	return;
+}
+
+public LoginSystem_GetAccessLevel(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+{
+	if (!IsPlayerConnected(playerid))
+		return 0;
+	if (IsPlayerAdmin(playerid))
+		return 10;
+	new playerLevel = yoursql_get_field_int(SQL:0, LOGIN_PASS_TBL_USRACCESS_SML, yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", serverPlayers[playerid][name]));
+	return playerLevel >= 0 ? playerLevel : 0;
+}
+
+public LoginSystem_SetAccessLevel(playerid, level, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
+{
+	if (!IsPlayerConnected(playerid) || !serverPlayers[playerid][isLoggedIn])
+		return false;
+	if (level < 0 || level > 10)
+	{
+		printf("![ADM]> Cannot set access level [%d] for %s (%d). Wrong level!", level, serverPlayers[playerid][name], playerid);
+		return false;
+	}
+	printf("![ADM]> Set access level [%d] for player %s (%d)!", level, serverPlayers[playerid][name], playerid);
+	new SQLRow: rowid;
+	rowid = yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", serverPlayers[playerid][name]);
+	if (!rowid)
+	{
+		printf("Cannot change acces level for player %s (%d) - not found in database (%d)", serverPlayers[playerid][name], playerid, int:rowid);
+		return false;
+	}
+	yoursql_set_field_int(SQL:0, LOGIN_PASS_TBL_USRACCESS_SML, rowid, level);
+	new message[64];
+	if (serverPlayers[playerid][language] == PLAYER_LANGUAGE_ENGLISH)
+		format(message, sizeof(message), "Your access (admin) level is now set to %d", level);
+	else
+		format(message, sizeof(message), "Ваш уровень доступа (админа) установлен на %d", level);
+	SendClientMessage(playerid, COLOR_SYSTEM_MAIN, message);
+	return true;
 }
