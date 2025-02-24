@@ -273,6 +273,61 @@ public CommandTeleport(playerid, const params[], serverPlayers[MODE_MAX_PLAYERS]
 		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] переместился в лётную зону \"Гора Чилиад\"", serverPlayers[playerid][name], playerid);
 		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, serverPlayers);
 	}
+	else if (!strcmp(params[0], "maze", true) || !strcmp(params[0], "skyscrappers", true))
+	{
+	    switch(random(7))
+	    {
+	        case 0://1461,1;-1435,17;500
+	        {
+	            x = 1461;
+			    y = -1435;
+			    z = 500;
+	        }
+	        case 1://1715,57;-1432,37;500
+	        {
+	            x = 1715;
+			    y = -1432;
+			    z = 500;
+	        }
+	        case 2://1702,52;-1050,21;500
+	        {
+	            x = 1702;
+			    y = -1050;
+			    z = 500;
+	        }
+	        case 3://1366,03;-948,61;500
+	        {
+	            x = 1366;
+			    y = -948;
+			    z = 500;
+	        }
+	        case 4://1278,48;-1216,01;500
+	        {
+	            x = 1278;
+			    y = -1216;
+			    z = 500;
+	        }
+	        case 5://1267,3;-1397,65;500
+	        {
+	            x = 1267;
+			    y = -1397;
+			    z = 500;
+	        }
+	        case 6://1552,73;-1222,06;500
+	        {
+	            x = 1552;
+			    y = -1222;
+			    z = 500;
+	        }
+	    }
+		
+		new messageEnglish[MAX_PLAYER_NAME + 73];
+		format(messageEnglish, sizeof(messageEnglish), "Player %s [%d] has been teleported to the Skyscrappers airspace", serverPlayers[playerid][name], playerid);
+
+		new messageRussian[MAX_PLAYER_NAME + 78];
+		format(messageRussian, sizeof(messageRussian), "Игрок %s [%d] переместился в лётную зону \"Небоскрёбы\"", serverPlayers[playerid][name], playerid);
+		sendLocalizedMessage(messageRussian, messageEnglish, COLOR_SYSTEM_DISCORD, serverPlayers);
+	}
 	else
 	{
 		x = 0;

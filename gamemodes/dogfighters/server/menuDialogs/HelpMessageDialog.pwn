@@ -20,6 +20,8 @@ public showHelpMessageDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPla
                         /heal /hp - Heal a player\n\
                         /reclass - Re-select player class\n\
                         /kill - Spawn a player\n\
+                        /spec [ID] /specoff - spectate (stop spectating) for player\n\
+                        /pay /givecash /givemoney [id] [ammount] - give some cash to player\n\
                         /pvp [player ID] - Request player to start duel\n\
                         /y - Accept duel with player (/pvp)\n\
                         /n - Decline to start duel (/pvp)\n\
@@ -33,7 +35,8 @@ public showHelpMessageDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPla
                         /tp desert - teleport to Desert airspace\n\
                         /tp gate - teleport to Golden Gate Bridge airspace\n\
                         /tp beach - teleport to Los Santos Beach airspace\n\
-                        /tp chill - teleport to chiliad mountain",
+                        /tp chill - teleport to chiliad mountain\n\
+                        /tp maze - teleport to maze bank skyscrapper area",
                         "Ok", "");
     else
         ShowPlayerDialog(playerid, DIALOG_HELP_MESSAGE, DIALOG_STYLE_MSGBOX, 
@@ -43,6 +46,8 @@ public showHelpMessageDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPla
                         /heal /hp - Вылечить игрока\n\
                         /reclass - Перевыбрать свой класс\n\
                         /kill - Заспавниться\n\
+                        /spec [ID] /specoff - следить/перестать следить за игроком\n\
+                        /pay /givecash /givemoney [id] [сумма] - передать игроку деньги\n\
                         /pvp [ID игрока] - Вызвать игрока на дуэль\n\
                         /y - Подтвердить своё участие в дуэли (/pvp)\n\
                         /n - Отказаться от участия в дуэли (/pvp)\n\
@@ -56,7 +61,8 @@ public showHelpMessageDialog(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPla
                         /tp desert - телепорт в полётную зону \"Пустыня\"\n\
                         /tp gate - телепорт в полётную зону \"Мост Золотые Ворота\"\n\
                         /tp beach - телепорт в полётную зону \"Пляж ЛС\"\n\
-                        /tp chill - телепорт в полётную зону \"Гора Чилиад\"",
+                        /tp chill - телепорт в полётную зону \"Гора Чилиад\"\n\
+                        /tp maze - телепорт в полётную зону \"Небоскрёбы\"",
                         "Ok", "");
     return 1;
 }

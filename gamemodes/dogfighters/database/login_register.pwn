@@ -83,14 +83,15 @@ public LoginSystem_OnPlayerConnect(playerid, serverPlayers[MODE_MAX_PLAYERS][ser
 
 public LoginSystem_OnPlayerDisconnect(playerid, serverPlayers[MODE_MAX_PLAYERS][serverPlayer])
 {
+	printf("[LoginSystem] LoginRegister %d", playerid);
 	//save player's score
-	new
-		namePlayer[MAX_PLAYER_NAME + 1]
-	;
-	GetPlayerName(playerid, namePlayer, MAX_PLAYER_NAME + 1);
-
+	new SQLRow:rowid = yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", serverPlayers[playerid][name]);
+	if (rowid < SQLRow:1)
+		printf("[LoginSystem] Error: OnPlayerDisconnect - cannot fight player in database: %s (%d) [rowid: %d]", serverPlayers[playerid][name], playerid, int:rowid);
+	else
+		printf("[LoginSystem]: Saving player's score: %s (%d) score: %d, rowid: %d", serverPlayers[playerid][name], playerid, serverPlayers[playerid][money], int:rowid);
 	//save player score
-	yoursql_set_field_int(SQL:0, LOGIN_PASS_TBL_USR, yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", namePlayer), GetPlayerScore(playerid));
+	yoursql_set_field_int(SQL:0, LOGIN_PASS_TBL_USRSCORE, rowid, serverPlayers[playerid][money]);
 
 	return 1;
 }
@@ -171,7 +172,8 @@ public LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inpu
 				new
 				    acc_password[128]
 				;
-				yoursql_get_field(SQL:0, LOGIN_PASS_TBL_USRPASS_SML, yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", namePlayer), acc_password);
+				new SQLRow:rowid = yoursql_get_row(SQL:0, LOGIN_PASS_TBL_USR, "Name = %s", namePlayer);
+				yoursql_get_field(SQL:0, LOGIN_PASS_TBL_USRPASS_SML, rowid, acc_password);
 
 				//read the current input password and hash it
 				new
@@ -216,6 +218,9 @@ public LoginSystem_OnDialogResponse(playerid, dialogid, response, listitem, inpu
 						format(password, sizeof(password), "Ваш уровень админ прав: %d", accessLevel);
 					SendClientMessage(playerid, COLOR_SYSTEM_MAIN, password);
 				}
+				new bankCash = yoursql_get_field_int(SQL:0, LOGIN_PASS_TBL_USRSCORE_SML, rowid);
+				if (bankCash > 0 && bankCash < 90000000)
+					AddPlayerMoney(playerid, bankCash, serverPlayers);
 				ServerPlayerSetLoggedIn(playerid, true, serverPlayers);
 		    }
 		}

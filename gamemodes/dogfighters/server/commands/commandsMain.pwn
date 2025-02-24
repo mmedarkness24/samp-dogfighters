@@ -11,6 +11,7 @@
 #include "dogfighters/server/commands/CommandPrivateMessage.pwn"
 #include "dogfighters/server/commands/CommandSavePosition.pwn"
 #include "dogfighters/server/commands/CommandTeleportPosition.pwn"
+#include "dogfighters/server/commands/CommandGiveCash.pwn"
 #include "dogfighters/server/commands/CommandPvp.pwn"
 #include "dogfighters/server/commands/CommandCancelPvp.pwn"
 #include "dogfighters/server/commands/CommandAccept.pwn"

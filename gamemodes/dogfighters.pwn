@@ -68,6 +68,14 @@ public OnGameModeInit()
 	AddPlayerClass(287,-1409.96,496.92,19,270.1425,0,0,0,0,-1,-1);//    Army LV
 	AddPlayerClass(227,1687.82,1449.2,11,270,0,0,0,0,-1,-1);//    Dispatch
     AddPlayerClass(61,1889.45,-2289,13,270,0,0,0,0,-1,-1);//    Civil Pilot
+    
+    new helptext[39];
+    format(helptext, sizeof(helptext), "Use /help to see all player's commands");
+    Create3DTextLabel(helptext, COLOR_SYSTEM_MAIN, 342.61,2533.93,16.4, 10, 0, 0);
+    Create3DTextLabel(helptext, COLOR_SYSTEM_MAIN, 293.7,2031.31,17.3, 10, 0, 0);
+    Create3DTextLabel(helptext, COLOR_SYSTEM_MAIN, -1409.96,496.92,18.3, 10, 0, 0);
+    Create3DTextLabel(helptext, COLOR_SYSTEM_MAIN, 1687.82,1449.2,10.4, 10, 0, 0);
+    Create3DTextLabel(helptext, COLOR_SYSTEM_MAIN, 1889.45,-2289,13, 10, 0, 0);
 
 	if (!CA_Init())
 	    printf("[planesFireFix]: cannot create raycast world. Script may not work well.");
@@ -328,6 +336,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	dcmd(specoff, 7, cmdtext);
 	dcmd(unspec, 7, cmdtext);
 	dcmd(uspec, 7, cmdtext);
+	dcmd(givecash, 8, cmdtext);
+	dcmd(givemoney, 9, cmdtext);
+	dcmd(pay, 3, cmdtext);
 	
 	new playerState = GetPlayerState(playerid);
 	if (playerState < PLAYER_STATE_ONFOOT || playerState > PLAYER_STATE_PASSENGER)
@@ -583,6 +594,21 @@ dcmd_unspec(playerid, const params[])
 dcmd_uspec(playerid, const params[])
 {
 	return dcmd_specoff(playerid, params);
+}
+
+dcmd_givecash(playerid, const params[])
+{
+	return CommandGiveCash(playerid, params, _serverPlayers);
+}
+
+dcmd_givemoney(playerid, const params[])
+{
+	return dcmd_givecash(playerid, params);
+}
+
+dcmd_pay(playerid, const params[])
+{
+	return dcmd_givecash(playerid, params);
 }
 
 dcmd_kick(playerid, const params[])
